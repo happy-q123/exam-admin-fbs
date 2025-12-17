@@ -13,7 +13,7 @@ import org.springframework.util.Assert;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDto {
-    private Integer id;
+    private Long id;
     private String username;
     private String password;
     private String nickName;
@@ -39,5 +39,15 @@ public class UserDto {
                 .id(user.getId())
                 .build();
         return userDtoForLogin;
+    }
+
+    public User toUser(){
+        return User.builder()
+                .id(id)
+                .username(username)
+                .password(password)
+                .nickName(nickName)
+                .role(role)
+                .build();
     }
 }

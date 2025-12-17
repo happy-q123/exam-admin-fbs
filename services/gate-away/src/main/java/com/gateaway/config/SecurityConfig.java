@@ -24,15 +24,13 @@ public class SecurityConfig {
         http
                 // Gateway 不需要 CSRF
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-
                 // 只做“是否已认证”的判断
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/auth/**","/user/common/register").permitAll()
+                        .pathMatchers("/error").permitAll()
                         .anyExchange().authenticated()
                 )
-
                 // 开启 OAuth2 Resource Server（JWT）
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwt -> {})
                 );

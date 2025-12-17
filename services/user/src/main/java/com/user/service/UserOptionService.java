@@ -13,7 +13,7 @@ public interface UserOptionService extends IService<User> {
      * param
      * return
      */
-    UserDto registerUser(UserDto userDto);
+    boolean registerUser(UserDto userDto);
 
 
     /**
