@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: gate-away
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:7050/auth/oauth2/jwks
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    gateway:
+      routes:
+
+        - id: user_service_route
+          # lb://代表 LoadBalancer，后面跟的是注册在 Nacos 上的服务名
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+
+        - id: auth-service_route
+          uri: lb://auth-service
+          predicates:
+              - Path=/auth/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"   # 允许的来源，生产环境建议指定具体域名
+            allowedMethods: "*"   # 允许的方法: GET, POST...
+            allowedHeaders: "*"   # 允许的头信息
+#            allowCredentials: true # 是否允许携带 Cookie
+#    sentinel:
+#      transport:
+#        dashboard: 127.0.0.1:8080
+#      #默认是懒加载，第一次调用的时候才会加载到Dashboard里。这里取消懒加载
+#      eager: true
+
+server:
+  port: 7049
