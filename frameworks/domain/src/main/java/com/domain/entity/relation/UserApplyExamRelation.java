@@ -1,33 +1,37 @@
-package com.domain.entity;
+package com.domain.entity.relation;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.domain.enums.UserRoleEnum;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
-@TableName("sys_user")
+import java.time.LocalDateTime;
+
+/**
+ * description 考试-用户 关联表，记录谁报名了考试。
+ * author zzq
+ * date 2025/12/18 15:37
+ */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+@TableName(value ="user_apply_exam_relation")
+public class UserApplyExamRelation {
 
     //ASSIGN_ID 会自动触发自定义的 CustomIdGenerator
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    //用户账号
-    private String username;
-    private String password;
+    //考试id
+    private Long examId;
 
-    //用户昵称
-    private String nickName;
-    //用户角色（权限）
-    private UserRoleEnum role;
+    //用户id
+    private Long userId;
+
+    //报名时间
+    private LocalDateTime applyTime;
 }
