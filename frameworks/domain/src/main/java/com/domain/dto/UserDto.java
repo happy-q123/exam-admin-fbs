@@ -21,6 +21,7 @@ public class UserDto extends BasePojo {
     private String password;
     private String nickName;
     private UserRoleEnum role;
+    private boolean status;
 
     public static UserDto buildForLogin(User user){
         if(user == null){

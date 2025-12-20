@@ -1,6 +1,8 @@
-package com.domain.common;
+package com.domain.restful;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 统一响应结果封装类
@@ -28,6 +30,11 @@ public class RestResponse<T> implements Serializable {
      * 时间戳
      */
     private Long timestamp;
+
+    /**
+     * 时间戳格式化后
+     */
+    private String formatTimestamp;
     
     public RestResponse() {
         this.timestamp = System.currentTimeMillis();
@@ -38,6 +45,7 @@ public class RestResponse<T> implements Serializable {
         this.message = message;
         this.data = data;
         this.timestamp = System.currentTimeMillis();
+        this.formatTimestamp= LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
     
     /**
@@ -121,5 +129,13 @@ public class RestResponse<T> implements Serializable {
     
     public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setFormatTimestamp(String formatTimestamp) {
+        this.formatTimestamp = formatTimestamp;
+    }
+
+    public String getFormatTimestamp() {
+        return formatTimestamp;
     }
 }

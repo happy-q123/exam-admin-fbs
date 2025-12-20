@@ -15,6 +15,7 @@
         <module>user</module>
         <module>auth</module>
         <module>exam</module>
+        <module>question</module>
     </modules>
 
     <properties>

@@ -3,8 +3,6 @@ package com.domain.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.domain.entity.attribute.ExamSecuritySetting;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -46,7 +44,7 @@ public class Exam {
     private LocalDateTime createTime;
 
     //更新时间，对应 PG 的 timestamp
-    private LocalDateTime lastestUpdateTime;
+    private LocalDateTime latestUpdateTime;
 
     // 最大考试人数
     private Integer maxUserNum;

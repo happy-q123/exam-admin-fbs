@@ -28,7 +28,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         // 1. 远程调用 User Service
         // 这里的 userResult 只是一个 DTO (数据传输对象)
-        UserDto userResult = userFeignClient.loadUserByUsername(username);
+
+        UserDto userResult = userFeignClient.loadUserByUsername(username).getData();
 
         if (userResult == null) {
             throw new UsernameNotFoundException("用户不存在");

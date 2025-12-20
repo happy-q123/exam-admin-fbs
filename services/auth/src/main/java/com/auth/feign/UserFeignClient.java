@@ -1,6 +1,7 @@
 package com.auth.feign;
 
 import com.domain.dto.UserDto;
+import com.domain.restful.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,6 @@ public interface UserFeignClient {
 
     //调用user-service服务的/user/common/getUserByUsername接口
     @GetMapping("/user/common/getUserByUsername/{username}")
-    UserDto loadUserByUsername(@PathVariable("username") String username);
+    RestResponse<UserDto> loadUserByUsername(@PathVariable("username") String username);
 
 }

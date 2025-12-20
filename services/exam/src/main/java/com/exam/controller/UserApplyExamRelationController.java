@@ -1,7 +1,7 @@
 package com.exam.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.domain.common.RestResponse;
+import com.domain.restful.RestResponse;
 import com.domain.dto.UserApplyExamRelationDto;
 import com.domain.entity.relation.UserApplyExamRelation;
 import com.exam.service.ExamOptionService;
@@ -9,8 +9,6 @@ import com.exam.service.UserApplyExamRelationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 public class UserApplyExamRelationController {

@@ -27,6 +27,11 @@ spring:
           uri: lb://exam-service
           predicates:
             - Path=/exam/**
+        #问题服务
+        - id: question-service_route
+          uri: lb://question-service
+          predicates:
+            - Path=/question/**
 
       globalcors:
         cors-configurations:

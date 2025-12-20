@@ -7,6 +7,7 @@ import com.domain.entity.User;
 import com.domain.enums.UserRoleEnum;
 import com.user.mapper.UserMapper;
 import com.user.service.UserOptionService;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -30,7 +31,13 @@ public class UserOptionServiceImpl extends ServiceImpl<UserMapper, User> impleme
 
         userDto.setNickName("匿名用户"+randomNickName);
         userDto.setRole(UserRoleEnum.Student);
-        return save(userDto.toUser());
+        boolean result;
+        try {
+            result=save(userDto.toUser());
+        } catch (DuplicateKeyException e) {
+            throw new RuntimeException("用户已存在，不可重复注册");
+        }
+        return result;
     }
 
     @Override

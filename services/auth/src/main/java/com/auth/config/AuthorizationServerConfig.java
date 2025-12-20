@@ -45,7 +45,7 @@ public class AuthorizationServerConfig {
                 .scope("order:read")
                 .scope("order:write")
                 .tokenSettings(TokenSettings.builder()
-                        .accessTokenTimeToLive(Duration.ofHours(2))   // Access Token 活 2 小时 (默认是 5 分钟)
+                        .accessTokenTimeToLive(Duration.ofDays(2))   // Access Token 活 2 天
                         .refreshTokenTimeToLive(Duration.ofDays(30))  // Refresh Token 活 30 天
                         .reuseRefreshTokens(true)                     // 是否可以重复使用 Refresh Token
                         .build())

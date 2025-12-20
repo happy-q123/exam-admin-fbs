@@ -3,6 +3,7 @@ package com.exam.service.impl;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.domain.dto.ExamDto;
 import com.domain.entity.Exam;
 import com.domain.entity.relation.UserApplyExamRelation;
 import com.exam.mapper.ExamMapper;
@@ -50,6 +51,13 @@ public class ExamOptionServiceImpl extends ServiceImpl<ExamMapper, Exam> impleme
             throw new RuntimeException("用户已报名该考试，不能重复报名。");
         }
         return true;
+    }
+
+    @Override
+    public boolean insert(ExamDto dto) {
+        //转为Exam对象
+        Exam exam=dto.toExamForInsert();
+        return save(exam);
     }
 
     /**

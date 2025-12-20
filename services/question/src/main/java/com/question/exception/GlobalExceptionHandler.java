@@ -1,4 +1,4 @@
-package com.user.exception;
+package com.question.exception;
 
 import com.domain.restful.RestResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +14,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public RestResponse<Void> handleException(Exception e) {
-        log.error("系统内部异常：", e); // 务必打印日志，否则这回真不知道错哪了
+        log.warn("系统内部异常：", e); // 务必打印日志，否则这回真不知道错哪了
         // 生产环境建议返回 "系统繁忙"，开发环境可以返回 e.getMessage() 方便调试
-        return RestResponse.fail("失败，" + e.getMessage());
+        return RestResponse.fail( e.getMessage());
     }
 
 //    /**

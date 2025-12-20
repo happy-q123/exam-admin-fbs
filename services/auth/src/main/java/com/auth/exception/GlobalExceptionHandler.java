@@ -1,6 +1,6 @@
 package com.auth.exception;
 
-import com.domain.common.RestResponse;
+import com.domain.restful.RestResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

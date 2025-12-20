@@ -30,4 +30,7 @@ public class User {
     private String nickName;
     //用户角色（权限）
     private UserRoleEnum role;
+
+    //用户状态，true 启用，false 禁用
+    private boolean status;
 }
