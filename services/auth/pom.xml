@@ -47,22 +47,16 @@
             <scope> provided </scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
         <!--        自定义包domain-->
         <dependency>
             <groupId>exam</groupId>
             <artifactId>domain</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <exclusions>
-<!--                auth不需要连接数据库，所以排除掉mybatis-plus-boot-starter-->
-                <exclusion>
-                    <groupId>com.baomidou</groupId>
-                    <artifactId>mybatis-plus-boot-starter</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-jdbc</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
