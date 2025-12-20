@@ -32,6 +32,11 @@ spring:
           uri: lb://question-service
           predicates:
             - Path=/question/**
+        #消息服务
+        - id: message-service_route
+          uri: lb://message-service
+          predicates:
+            - Path=/message/**
 
       globalcors:
         cors-configurations:

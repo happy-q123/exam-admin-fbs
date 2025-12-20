@@ -26,8 +26,9 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 // 只做“是否已认证”的判断
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/**","/user/common/register").permitAll()
-                        .pathMatchers("/user/common/**").permitAll()
+                        .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/user/common/**","/user/common/register").permitAll()
+                        .pathMatchers("/message/ws","/message/ws-sockjs").permitAll()
                         .pathMatchers("/error").permitAll()
                         .anyExchange().authenticated()
                 )

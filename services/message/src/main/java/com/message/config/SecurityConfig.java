@@ -1,4 +1,4 @@
-package com.question.config;
+package com.message.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,8 +7,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -31,7 +29,11 @@ public class SecurityConfig {
 
                 // 2. 配置权限规则
                 .authorizeHttpRequests(auth -> auth
+                        //开放ws握手地址
+                        //ws的握手前期需要http，且浏览器的这个http握手不能携带header，所以不能让security处理token，只能配置ws拦截器
+                        .requestMatchers("/ws","/ws-sockjs").permitAll()
                         .requestMatchers("/error").permitAll()
+
                         // 其他所有请求都需要认证（虽然 Auth Server 不会调别的，但这是安全兜底）
                         .anyRequest().authenticated()
                 );
@@ -40,4 +42,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

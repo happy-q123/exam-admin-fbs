@@ -33,3 +33,8 @@ build/
 .vscode/
 /doc/记录.md
 /流程图/**
+
+# 忽略所有以 .md 结尾的文件
+*.md
+# 不忽略 README.md
+!README.md

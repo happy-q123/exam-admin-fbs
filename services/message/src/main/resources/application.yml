@@ -1,0 +1,65 @@
+spring:
+  datasource:
+    # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
+    url: jdbc:postgresql://localhost:5432/new-exam?currentSchema=public
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+  application:
+    name: message-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # 【关键】指向 Auth Server 的公钥地址
+          # 资源服务器启动时，会访问这个地址拿到公钥，之后就在本地离线验签，速度极快
+          jwk-set-uri: http://localhost:7050/auth/oauth2/jwks
+#    sentinel:
+#      transport:
+#        dashboard: 127.0.0.1:8080
+#      #默认是懒加载，第一次调用的时候才会加载到Dashboard里。这里取消懒加载
+#      eager: true
+
+server:
+  port: 7055
+  servlet:
+    # 应用的访问路径
+    context-path: /message
+
+
+mybatis-plus:
+  # 1. 映射文件位置 (如果你需要写手写 XML SQL)
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+  # 2. 配置策略
+  configuration:
+    # 开启 SQL 日志打印 (开发环境必开，方便调试)
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 自动将下划线转驼峰 (user_name -> userName)，默认就是 true
+    map-underscore-to-camel-case: true
+
+  global-config:
+    db-config:
+      # 3. 主键策略 (非常重要，见下文详细解释)
+      # 如果你的 PG 表主键是 SERIAL/BIGSERIAL (自增)，用 AUTO
+      # 如果你想用 MP 自带的雪花算法 (分布式ID)，用 ASSIGN_ID
+      id-type: auto
+
