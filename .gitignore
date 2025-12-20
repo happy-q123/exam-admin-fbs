@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 /doc/记录.md
+/流程图/**

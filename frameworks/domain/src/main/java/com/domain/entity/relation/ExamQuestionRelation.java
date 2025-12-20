@@ -46,13 +46,6 @@ public class ExamQuestionRelation {
     private Integer seq;
 
     /**
-     * 题的分组。
-     * 注意：group 是 SQL 保留字，必须在 value 中指明字段名
-     * todo 枚举
-     */
-    private String questionGroup;
-
-    /**
      * 覆盖配置。用于存储“只针对本次考试生效”的属性
      * 映射为 Map 比较灵活，也可以定义专门的 DTO
      */

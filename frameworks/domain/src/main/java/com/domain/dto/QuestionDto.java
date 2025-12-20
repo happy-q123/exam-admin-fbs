@@ -112,4 +112,24 @@ public class QuestionDto extends BasePojo {
                 .latestUpdateId(latestUpdateId)
                 .build();
     }
+
+
+    public static QuestionDto toDto(Question question) {
+        return QuestionDto.builder()
+                .id(question.getId())
+                .type(question.getType())
+                .difficulty(question.getDifficulty())
+                .creatorId(question.getCreatorId())
+                .status(question.isStatus())
+                .createTime(question.getCreateTime())
+                .body(question.getBody())
+                .tags(question.getTags())
+                .latestUpdateTime(question.getLatestUpdateTime())
+                .latestUpdateId(question.getLatestUpdateId())
+                .build();
+    }
+
+    public static List<QuestionDto> toDtoList(List<Question> questions) {
+        return questions.stream().map(QuestionDto::toDto).toList();
+    }
 }

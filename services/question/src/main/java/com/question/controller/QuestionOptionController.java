@@ -1,15 +1,15 @@
 package com.question.controller;
 
 import com.domain.dto.QuestionDto;
+import com.domain.entity.Question;
 import com.domain.restful.RestResponse;
 import com.question.service.QuestionOptionService;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,5 +41,17 @@ public class QuestionOptionController {
         Long result=questionOptionService.insert(dto);
         String message=result==null?"添加失败":"添加成功";
         return RestResponse.success(message, Map.of("id",String.valueOf(result)));
+    }
+
+    /**
+     * description 根据问题id列表获取问题列表
+     * author zzq
+     * date 2025/12/20 17:10
+     * param
+     * return
+     */
+    @GetMapping("/getListByIds")
+    public RestResponse<List<QuestionDto>> getListByIds(@RequestParam("ids") List<Long> ids) {
+        return RestResponse.success("查询成功", questionOptionService.getListByIds(ids));
     }
 }

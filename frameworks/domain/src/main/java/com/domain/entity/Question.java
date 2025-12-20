@@ -2,9 +2,11 @@ package com.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.domain.dto.QuestionDto;
 import com.domain.entity.attribute.QuestionBody;
 import com.domain.enums.QuestionDifficultyEnum;
 import com.domain.enums.QuestionTypeEnum;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -72,4 +74,5 @@ public class Question {
 
     //最后更新者的id
     private Long latestUpdateId;
+
 }
