@@ -1,5 +1,6 @@
 package com.message.listener;
 
+import com.domain.enums.redis.UserOnlineKeyEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -23,8 +24,7 @@ public class WebSocketEventListener {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    private static final String ONLINE_USER_KEY = "exam:online:users";
-
+    private static final String User_Online_Key = UserOnlineKeyEnum.ONLINE_USERS.buildKey();
     /**
      * 监听：连接成功
      */
@@ -37,7 +37,7 @@ public class WebSocketEventListener {
             String userId = user.getName();
             log.info("✅ 用户上线: {}", userId);
             // 存入 Redis Set 集合
-            redisTemplate.opsForSet().add(ONLINE_USER_KEY, userId);
+            redisTemplate.opsForSet().add(User_Online_Key, userId);
         }
     }
 
@@ -53,7 +53,7 @@ public class WebSocketEventListener {
             String userId = user.getName();
             log.info("❌ 用户下线: {}", userId);
             // 从 Redis 移除
-            redisTemplate.opsForSet().remove(ONLINE_USER_KEY, userId);
+            redisTemplate.opsForSet().remove(User_Online_Key, userId);
         }
     }
 }
