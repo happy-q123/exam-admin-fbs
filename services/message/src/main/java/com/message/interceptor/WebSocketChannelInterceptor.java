@@ -2,18 +2,23 @@ package com.message.interceptor;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+
+import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * description ws的握手前期需要http，且浏览器的这个握手http不能携带header，所以不能让security处理token，只能配置ws拦截器
@@ -48,21 +53,17 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
                 String token = authHeader.substring(7); // 去掉 "Bearer " 前缀
 
                 try {
-                    // 使用官方 Decoder 验证 Token
-                    // 如果 Token 过期或无效，这里会直接抛出 JwtValidationException
                     Jwt jwt = jwtDecoder.decode(token);
 
-                    // 将 JWT 转换为 Spring Security 的认证对象
-                    // JwtAuthenticationToken 是 OAuth2 Resource Server 标准的 Principal
-                    JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwt);
+                    // 1. 从 JWT Claims 中获取 userId (假设你的 token 里存的是 "userId" 或 "id")
+                    // 注意：根据你的生成逻辑，这里可能是 String 也可能是 Long
+                    String userIdObj = jwt.getClaims().get("userId").toString();
+                    Principal authentication = getPrincipal(userIdObj, jwt, token);
 
-                    // 如果你需要解析角色（Authorities），可以用 Converter，默认只会解析 scope
-//                     JwtAuthenticationToken authentication = (JwtAuthenticationToken) jwtAuthenticationConverter.convert(jwt);
-
-                    // 绑定到 WebSocket Session
+                    // 5. 绑定到 WebSocket Session
                     accessor.setUser(authentication);
 
-                    log.info("✅ OAuth2 认证成功，用户: {}", authentication.getName()); // 默认是 sub 字段
+                    log.info("✅ OAuth2 认证成功，用户ID: {}", authentication.getName()); // 现在这里打印的就是 ID 了
 
                 } catch (JwtValidationException e) {
                     log.error("❌ Token 验证失败: {}", e.getMessage());
@@ -75,5 +76,23 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
             }
         }
         return message;
+    }
+
+    private UsernamePasswordAuthenticationToken getPrincipal(Object userIdObj, Jwt jwt, String token) {
+        String userIdString = String.valueOf(userIdObj);
+
+        // 建议先给空权限，跑通了再说。或者手动构建 SimpleGrantedAuthority
+        List<GrantedAuthority> authorities = Collections.emptyList();
+
+        // 或者如果你想把 sub 当权限（虽然不常见）：
+         if (jwt.getSubject() != null) {
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getSubject()));
+         }
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userIdString, token, authorities);
+
+        authentication.setDetails(jwt.getClaims());
+        return authentication;
     }
 }

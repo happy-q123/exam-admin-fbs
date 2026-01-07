@@ -83,7 +83,7 @@ public class MessageDispatchServiceImpl implements MessageDispatchService {
                 // 标准发送
                 messagingTemplate.convertAndSendToUser(userId, destination, finalPayload);
             }
-            log.info("📧 私信 -> 用户: [{}], 路径: {}, 内容摘要: {}", userId, destination, getLogSummary(finalPayload));
+            log.info("📧 私信 -> 用户: {}, 路径: {}, 内容摘要: {}", userId, destination, getLogSummary(finalPayload));
         } catch (Exception e) {
             log.error("❌ 发送私信失败 -> 用户: {}, 原因: {}", userId, e.getMessage());
         }

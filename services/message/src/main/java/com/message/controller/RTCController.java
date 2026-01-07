@@ -38,7 +38,6 @@ public class RTCController {
     public void attemptVideo(@Payload String targetStudentId, Principal principal) {
         String teacherId = principal.getName();
         log.info("👮‍ 监考老师 [{}] 请求查看学生 [{}] 的视频", teacherId, targetStudentId);
-
         // 给该学生发送指令：请初始化你的摄像头，并给我发 Offer
         // 消息发往: /user/{studentId}/queue/video-request
         messageDispatchServiceImpl.sendToUser(targetStudentId, "/queue/video-request", teacherId);
