@@ -7,7 +7,7 @@ import com.domain.restful.RestResponse;
 import com.domain.dto.ExamDto;
 import com.domain.entity.Exam;
 import com.domain.vo.ExamQuestionRelationVo;
-import com.exam.service.ExamOptionService;
+import com.exam.service.ExamService;
 import com.exam.service.ExamQuestionRelationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ExamOptionController {
-    private final ExamOptionService examOptionService;
+    private final ExamService examService;
     private final ExamQuestionRelationService examQuestionRelationService;
 
-    public ExamOptionController(ExamOptionService examOptionService, ExamQuestionRelationService examQuestionRelationService) {
-        this.examOptionService = examOptionService;
+    public ExamOptionController(ExamService examService, ExamQuestionRelationService examQuestionRelationService) {
+        this.examService = examService;
         this.examQuestionRelationService = examQuestionRelationService;
     }
 
@@ -30,7 +30,7 @@ public class ExamOptionController {
             return RestResponse.fail("token中无userId");
         dto.setCreator(userId);
 
-        String result=examOptionService.insert(dto)? "添加成功":"添加失败";
+        String result= examService.insert(dto)? "添加成功":"添加失败";
         return RestResponse.success(result);
     }
 
@@ -44,7 +44,7 @@ public class ExamOptionController {
     @GetMapping("/getExamById/{examId}")
     public RestResponse<Exam> getExamList(@PathVariable("examId") String examId){
         Long id=Long.parseLong(examId);
-        Exam e=examOptionService.getOne(new LambdaQueryWrapper<Exam>().eq(Exam::getId,id));
+        Exam e= examService.getOne(new LambdaQueryWrapper<Exam>().eq(Exam::getId,id));
         return RestResponse.success(e);
     }
 

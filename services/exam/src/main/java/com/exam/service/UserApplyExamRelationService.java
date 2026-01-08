@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domain.dto.UserApplyExamRelationDto;
 import com.domain.entity.relation.UserApplyExamRelation;
 
-import java.util.List;
 
 public interface UserApplyExamRelationService extends IService<UserApplyExamRelation> {
     /**
@@ -20,13 +19,13 @@ public interface UserApplyExamRelationService extends IService<UserApplyExamRela
     Page<UserApplyExamRelation> getList(UserApplyExamRelationDto userApplyExamRelationDto);
 
     /**
-     * description 查询记录是否已经存在
+     * description  检查用户是否报名了该考试
      * author zzq
      * date 2025/12/18 16:55
      * param
      * return true存在，false不存在
      */
-    boolean checkExist(Long userId, Long examId);
+    boolean checkExamApplyExist(Long userId, Long examId);
 
     /**
      * description 根据userId和examId插入报名关系
@@ -35,4 +34,5 @@ public interface UserApplyExamRelationService extends IService<UserApplyExamRela
      * param
      */
      void insert(Long userId, Long examId);
+
 }

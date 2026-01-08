@@ -6,16 +6,12 @@ import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-/**
- * description Redis的key类，存储用户在线信息
- * author zzq
- * date 2026/1/7 16:02
- */
 @Getter
-public enum UserOnlineKeyEnum {
-
-    // 所有在线用户（全局 Set）
-    ONLINE_USERS("online-userIds", RedisDataTypeEnum.SET, RedisKeyModeEnum.GLOBAL);
+public enum OnlineExamEnum {
+    // 用户参加的考试是否正在进行中。key为is:examing:{userId}, value为考试Id
+    Is_Examing("is-examing", RedisDataTypeEnum.STRING, RedisKeyModeEnum.PRIVATE),
+    // 考试时长。key为exam-expire-time:{examId}, value为考试时长（分钟数）
+    Exam_Expire_Time("exam-expire-time",RedisDataTypeEnum.STRING, RedisKeyModeEnum.PRIVATE);
 
     //key前缀
     private final String prefix;
@@ -24,7 +20,7 @@ public enum UserOnlineKeyEnum {
     //key模式，全局共用还是每个用户独享。
     private final RedisKeyModeEnum keyMode;
 
-    UserOnlineKeyEnum(String prefix,
+    OnlineExamEnum(String prefix,
                       RedisDataTypeEnum dataType,
                       RedisKeyModeEnum keyMode) {
         this.prefix = prefix;
@@ -51,6 +47,3 @@ public enum UserOnlineKeyEnum {
     }
 
 }
-
-
-

@@ -11,4 +11,11 @@ public interface UserOnlineExamOptionsService extends IService<UserOnlineExamOpt
      * author zzq
      */
     void saveUserOnlineExamOption(UserOnlineExamOptionsDto userOnlineExamOptionsDto);
+
+    /**
+     * description 获取用户进入考试的次数
+     * author zzq
+     * date 2026/1/8 11:19
+     */
+    Long getUserEnterExamCount(Long userId, Long examId);
 }

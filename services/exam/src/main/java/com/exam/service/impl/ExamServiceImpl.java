@@ -5,23 +5,28 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domain.dto.ExamDto;
 import com.domain.entity.Exam;
-import com.domain.entity.relation.UserApplyExamRelation;
+import com.domain.entity.attribute.ExamSecuritySetting;
+import com.domain.enums.redis.OnlineExamEnum;
 import com.exam.mapper.ExamMapper;
-import com.exam.mapper.UserApplyExamRelationMapper;
-import com.exam.service.ExamOptionService;
+import com.exam.service.ExamService;
 import com.exam.service.UserApplyExamRelationService;
+import jakarta.annotation.Nullable;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
-@Service
-public class ExamOptionServiceImpl extends ServiceImpl<ExamMapper, Exam> implements ExamOptionService {
-    private final UserApplyExamRelationService userApplyExamRelationService;
+import java.util.concurrent.TimeUnit;
 
-    public ExamOptionServiceImpl(UserApplyExamRelationService userApplyExamRelationService) {
+@Service
+public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements ExamService {
+    private final UserApplyExamRelationService userApplyExamRelationService;
+    private final StringRedisTemplate stringRedisTemplate;
+    public ExamServiceImpl(UserApplyExamRelationService userApplyExamRelationService, StringRedisTemplate stringRedisTemplate) {
         this.userApplyExamRelationService = userApplyExamRelationService;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -31,7 +36,7 @@ public class ExamOptionServiceImpl extends ServiceImpl<ExamMapper, Exam> impleme
         Assert.notNull(userId, "用户id不能为空");
 
         //检查用户是否已报名（虽然数据库有复合唯一索引保底，但还是查一下提高性能）
-        boolean isExist=userApplyExamRelationService.checkExist(userId, examId);
+        boolean isExist=userApplyExamRelationService.checkExamApplyExist(userId, examId);
         if (isExist)
             throw new RuntimeException("用户已报名该考试，不能重复报名。");
 
@@ -58,6 +63,44 @@ public class ExamOptionServiceImpl extends ServiceImpl<ExamMapper, Exam> impleme
         //转为Exam对象
         Exam exam=dto.toExamForInsert();
         return save(exam);
+    }
+
+    @Override
+    public boolean currentIsByondExamExpireTime(Long examId, @Nullable LocalDateTime checkTime) { // 改名：是否已过期
+        Assert.notNull(examId, "考试ID不能为空");
+        LocalDateTime targetTime = (checkTime == null) ? LocalDateTime.now() : checkTime;
+
+        String examExpireTimeKey = OnlineExamEnum.Exam_Expire_Time.buildKey(String.valueOf(examId));
+        String examExpireTimeValue = stringRedisTemplate.opsForValue().get(examExpireTimeKey);
+
+        // 走缓存
+        if (examExpireTimeValue != null) {
+            LocalDateTime examExpireTime = LocalDateTime.parse(examExpireTimeValue);
+            // 如果 当前时间 > 过期时间，返回 true
+            return targetTime.isAfter(examExpireTime);
+        }
+
+        // 查数据库
+        Exam e = lambdaQuery()
+                .eq(Exam::getId, examId)
+                .select(Exam::getBeginTime, Exam::getDurationTime)
+                .one();
+
+        if (e == null) {
+            throw new RuntimeException("未找到对应的考试信息");
+        }
+
+        // 计算过期时间
+        LocalDateTime endTime = e.getBeginTime().plusMinutes(e.getDurationTime());
+
+        // 写入缓存
+        long secondsUntilExpire = java.time.Duration.between(LocalDateTime.now(), endTime).getSeconds();
+        if (secondsUntilExpire > 0) {
+            stringRedisTemplate.opsForValue().set(examExpireTimeKey, endTime.toString(), secondsUntilExpire, TimeUnit.SECONDS);
+        }
+
+        // 返回逻辑统一：当前时间 > 结束时间
+        return targetTime.isAfter(endTime);
     }
 
     /**
@@ -90,5 +133,22 @@ public class ExamOptionServiceImpl extends ServiceImpl<ExamMapper, Exam> impleme
 
         //考试存在，考试人员已满
         return 0;
+    }
+
+
+    @Override
+    public Long getEnterExamMaxCount(Long examId) {
+        Assert.notNull(examId, "考试id不能为空");
+
+        Exam e= lambdaQuery()
+                .eq(Exam::getId, examId)
+                .select(Exam::getSecuritySetting)
+                .one();
+
+        if (e == null)
+            throw new RuntimeException("exam对象为空");
+
+        ExamSecuritySetting setting=e.getSecuritySetting();
+        return Long.valueOf(setting.getMaxReconnectCount());
     }
 }

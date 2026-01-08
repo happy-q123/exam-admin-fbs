@@ -1,5 +1,6 @@
 package com.exam.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -23,10 +24,13 @@ public class UserApplyExamRelationServiceImpl extends ServiceImpl<UserApplyExamR
     }
 
     @Override
-    public boolean checkExist(Long userId, Long examId) {
+    public boolean checkExamApplyExist(Long userId, Long examId) {
+        Assert.notNull(userId, "用户ID不能为空");
+        Assert.notNull(examId, "考试ID不能为空");
+
         return lambdaQuery()
-                .eq(UserApplyExamRelation::getUserId, userId)
-                .eq(UserApplyExamRelation::getExamId, examId)
+                .eq(UserApplyExamRelation::getUserId,userId)
+                .eq(UserApplyExamRelation::getExamId,examId)
                 .exists();
     }
 
@@ -40,4 +44,5 @@ public class UserApplyExamRelationServiceImpl extends ServiceImpl<UserApplyExamR
                 .build();
         save(examUserRelation);
     }
+
 }

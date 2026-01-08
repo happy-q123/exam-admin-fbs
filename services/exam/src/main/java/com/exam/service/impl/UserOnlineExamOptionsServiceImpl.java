@@ -1,8 +1,10 @@
 package com.exam.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domain.dto.UserOnlineExamOptionsDto;
 import com.domain.entity.relation.UserOnlineExamOptions;
+import com.domain.enums.UserOnlineExamOptionTypeEnum;
 import com.domain.enums.redis.UserOnlineKeyEnum;
 import com.exam.mapper.UserOnlineExamOptionsMapper;
 import com.exam.service.UserOnlineExamOptionsService;
@@ -34,4 +36,22 @@ public class UserOnlineExamOptionsServiceImpl extends ServiceImpl<UserOnlineExam
             throw new RuntimeException("已经提交过用户行为");
         }
     }
+
+    @Override
+    public Long getUserEnterExamCount(Long userId, Long examId) {
+        Assert.notNull(userId, "用户id不能为空");
+        Assert.notNull(examId, "考试id不能为空");
+
+        Long count = lambdaQuery()
+                .eq(UserOnlineExamOptions::getUserId, userId)
+                .eq(UserOnlineExamOptions::getExamId, examId)
+                .eq(UserOnlineExamOptions::getOptionType, UserOnlineExamOptionTypeEnum.Enter)
+                .count();
+        if (count == null)
+            throw new RuntimeException("count为空");
+
+        return count;
+    }
+
+
 }

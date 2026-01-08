@@ -1,6 +1,6 @@
 package com.domain.enums.redis.base;
 
 public enum RedisKeyModeEnum {
-    GLOBAL,     // 全局唯一 key，不需要 id
-    BY_USER     // 按 userId 分片
+    GLOBAL,     // 无序拼接直接使用
+    PRIVATE     // 需要特殊拼接，如key的前缀拼接用户ID
 }

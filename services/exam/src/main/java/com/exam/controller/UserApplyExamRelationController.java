@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domain.restful.RestResponse;
 import com.domain.dto.UserApplyExamRelationDto;
 import com.domain.entity.relation.UserApplyExamRelation;
-import com.exam.service.ExamOptionService;
+import com.exam.service.ExamService;
 import com.exam.service.UserApplyExamRelationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class UserApplyExamRelationController {
     private final UserApplyExamRelationService userApplyExamRelationService;
-    private final ExamOptionService examOptionService;
-    public UserApplyExamRelationController(UserApplyExamRelationService userApplyExamRelationService, ExamOptionService examOptionService) {
+    private final ExamService examService;
+    public UserApplyExamRelationController(UserApplyExamRelationService userApplyExamRelationService, ExamService examService) {
         this.userApplyExamRelationService = userApplyExamRelationService;
-        this.examOptionService = examOptionService;
+        this.examService = examService;
     }
 
     /**
@@ -30,7 +30,7 @@ public class UserApplyExamRelationController {
         Long userId = jwt.getClaim("userId");
         if(userId==null)
             return RestResponse.fail("token中无userId");
-        examOptionService.userApplyExam(userId,userApplyExamRelationDto.getExamId());
+        examService.userApplyExam(userId,userApplyExamRelationDto.getExamId());
         //失败的情况都抛出了异常，要是能成功到这里，说明成功
         return RestResponse.success("报名成功");
     }
