@@ -11,6 +11,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
@@ -54,7 +55,6 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 
                 try {
                     Jwt jwt = jwtDecoder.decode(token);
-
                     // 1. 从 JWT Claims 中获取 userId (假设你的 token 里存的是 "userId" 或 "id")
                     // 注意：根据你的生成逻辑，这里可能是 String 也可能是 Long
                     String userIdObj = jwt.getClaims().get("userId").toString();

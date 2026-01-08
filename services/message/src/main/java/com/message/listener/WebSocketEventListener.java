@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -65,7 +67,7 @@ public class WebSocketEventListener {
             redisTemplate.opsForSet().remove(User_Online_Key, userId);
 
             // 退出时查询用户是否正在参与考试，如果在，则向考试写入“考试退出”记录。
-            processUserDropOnline(userId);
+            processUserDropOnline(userId,user);
         }
     }
 
@@ -74,7 +76,7 @@ public class WebSocketEventListener {
      * author zzq
      * date 2026/1/8 15:54
      */
-    private void processUserDropOnline(String userId) {
+    private void processUserDropOnline(String userId,Principal principal) {
         String key=OnlineExamEnum.Is_Examing.buildKey(userId);
 
         String examIdV=redisTemplate.opsForValue().get(key);
@@ -87,7 +89,10 @@ public class WebSocketEventListener {
                 .examId(examId)
                 .optionType(UserOnlineExamOptionTypeEnum.Exit)
                 .optionTime(LocalDateTime.now()).build();
-
+        // 【关键代码】手动设置 SecurityContext，让 Feign 拦截器能读到
+        if (principal instanceof UsernamePasswordAuthenticationToken) {
+            SecurityContextHolder.getContext().setAuthentication((UsernamePasswordAuthenticationToken) principal);
+        }
         onlineExamFeignClient.exitOnlineExam(dto);
     }
 }
