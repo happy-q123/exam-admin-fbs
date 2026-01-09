@@ -5,17 +5,22 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>exam</groupId>
-        <artifactId>exam-admin-fbs</artifactId>
+        <artifactId>frameworks</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>frameworks</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>domain</module>
-        <module>snow-flake</module>
-        <module>rmq</module>
-    </modules>
+    <artifactId>rmq</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>

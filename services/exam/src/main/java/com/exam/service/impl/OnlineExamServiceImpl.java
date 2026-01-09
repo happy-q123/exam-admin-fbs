@@ -83,7 +83,7 @@ public class OnlineExamServiceImpl implements OnlineExamService {
             LocalDateTime examExpireTime=LocalDateTime.parse(examExpireTimeValue);
             // 计算考试持续时间（分钟）
             long durationInMinutes = java.time.Duration.between(acquireTime, examExpireTime).toMinutes();
-            // 将用户标记为正在考试状态，并设置过期时间为考试持续时间
+            // 将用户标记为正在考试状态，并设置过期时间为剩余考试时间
             stringRedisTemplate.opsForValue().set(examingKey, examId.toString(), durationInMinutes, TimeUnit.MINUTES);
         }else{
             Long examingId=Long.parseLong(value);

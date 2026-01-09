@@ -4,6 +4,8 @@ import com.domain.restful.RestResponse; // 替换引用
 import com.message.service.MessageDispatchService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class MessageDispatchServiceImpl implements MessageDispatchService {
 
     @Resource
     private SimpMessagingTemplate messagingTemplate;
+
+    @Value("${socket.message.dispatch.log:false}")
+    private boolean useLog;
 
     /**
      * 发送给单人 (最常用)
@@ -56,7 +61,9 @@ public class MessageDispatchServiceImpl implements MessageDispatchService {
         RestResponse<Object> response = RestResponse.success(payload);
         try {
             messagingTemplate.convertAndSend(destination, response);
-            log.info("📢 广播消息 -> 路径: {}, 内容摘要: {}", destination, getLogSummary(payload));
+            if (useLog){
+                log.info("📢 广播消息 -> 路径: {}, 内容摘要: {}", destination, getLogSummary(payload));
+            }
         } catch (MessagingException e) {
             log.error("❌ 广播失败: {}", e.getMessage());
         }
@@ -83,7 +90,9 @@ public class MessageDispatchServiceImpl implements MessageDispatchService {
                 // 标准发送
                 messagingTemplate.convertAndSendToUser(userId, destination, finalPayload);
             }
-            log.info("📧 私信 -> 用户: {}, 路径: {}, 内容摘要: {}", userId, destination, getLogSummary(finalPayload));
+            if(useLog){
+                log.info("📧 私信 -> 用户: {}, 路径: {}, 内容摘要: {}", userId, destination, getLogSummary(finalPayload));
+            }
         } catch (Exception e) {
             log.error("❌ 发送私信失败 -> 用户: {}, 原因: {}", userId, e.getMessage());
         }

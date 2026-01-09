@@ -63,3 +63,14 @@ mybatis-plus:
       # 如果你想用 MP 自带的雪花算法 (分布式ID)，用 ASSIGN_ID
       id-type: auto
 
+rocketmq:
+  name-server: 127.0.0.1:10909
+  producer:
+    group: exam-fbs-producer-group  # 生产者组名
+    send-message-timeout: 3000 # 发送超时时间（毫秒）
+
+#自定义，是否开启消息发送的日志
+socket:
+  message:
+    dispatch:
+      log: true
