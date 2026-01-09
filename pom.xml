@@ -23,7 +23,7 @@
         <mybatis-plus.version>3.5.15</mybatis-plus.version>
         <hutool.version>5.8.40</hutool.version>
         <redisson.version>3.27.2</redisson.version>
-        <rocket-mq.version>2.3.0</rocket-mq.version>
+        <rocket-mq.version>2.3.2</rocket-mq.version>
     </properties>
 
     <dependencyManagement>
