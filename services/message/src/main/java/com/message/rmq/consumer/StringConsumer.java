@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-    topic = "test-topic|test-delay",          // 监听的 Topic
+    topic = "test-topic",          // 监听的 Topic
     consumerGroup = "my-consumer-group", // 消费者组
     selectorExpression = "*"       // Tag 过滤，* 表示接收所有 tag，或指定 "tagA || tagB"
 )

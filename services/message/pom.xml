@@ -85,10 +85,12 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+<!--        自定义的rmq-->
         <dependency>
             <groupId>exam</groupId>
             <artifactId>rmq</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
     </dependencies>
 </project>

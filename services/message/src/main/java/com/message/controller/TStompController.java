@@ -1,12 +1,15 @@
 package com.message.controller;
 
+import com.domain.dto.StompMessageDto;
+import com.domain.restful.RestResponse;
 import com.message.service.MessageDispatchService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.security.Principal;
-import java.util.Map;
 
 /**
  * description TODO 责任链模式检查用户是否被禁用，是否在线
@@ -33,6 +36,12 @@ public class TStompController {
         long userId= Long.parseLong(token.getName());
         messageDispatchService.sendToUser(Long.toString(userId),"/queue/sayHello",message);
         System.out.println("Received message: " + message);
+    }
+
+    @PostMapping("/infoOnlineUsers")
+    public RestResponse infoOnlineUsers(@RequestBody StompMessageDto tdo) {
+        messageDispatchService.sendToUser(tdo.getReceiverId(),tdo.getDestination(),tdo.getMessage());
+        return RestResponse.success();
     }
 
 }
