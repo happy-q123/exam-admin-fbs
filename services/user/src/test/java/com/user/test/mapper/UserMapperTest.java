@@ -24,7 +24,7 @@ public class UserMapperTest {
                 .username("admin")
                 .password("123456")
                 .nickName("admin")
-                .id(111)
+                .id(111L)
                 .role(UserRoleEnum.Admin)
                 .build();
         userMapper.insert(user);
