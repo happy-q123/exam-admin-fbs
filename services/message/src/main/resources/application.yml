@@ -69,6 +69,9 @@ rocketmq:
     group: exam-fbs-producer-group  # 生产者组名
     send-message-timeout: 3000 # 发送超时时间（毫秒）
 
+
+
+
 #自定义，是否开启消息发送的日志
 socket:
   message:

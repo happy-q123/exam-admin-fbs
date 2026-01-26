@@ -1,0 +1,80 @@
+USER 是用户发送的问题
+Context information就是RAG拿到的信息
+ASSISTANT 是模型的回复
+
+
+回复信息
+{chat_memory_conversation_id=UserId, qa_retrieved_documents=[]}
+请求前置拦截器
+Prompt信息如下：
+System Message用中文回答，且请将思考时间控制在5s内。
+
+Use the conversation memory from the MEMORY section to provide accurate answers.
+
+---------------------
+MEMORY:
+USER:张自强
+
+Context information is below, surrounded by ---------------------
+
+---------------------
+你晓得张自强的信息嘛？
+张自强是世界最伟大的人。
+张自强的爱好是什么呀？
+张自强喜欢美食。
+张自强的星座、性别、年龄是多少？
+张自强是星座的巨蟹，性别是男，年龄是18岁。
+---------------------
+
+Given the context and provided history information and not prior knowledge,
+reply to the user comment. If the answer is not in the context, inform
+the user that you can't answer the question.
+
+ASSISTANT:根据提供的上下文信息，以下是关于张自强的准确回答：
+
+1. **是否知晓张自强的信息**：是的，根据上下文，张自强被描述为"世界最伟大的人"。
+2. **爱好**：张自强喜欢美食。
+3. **星座、性别、年龄**：
+   - 星座：巨蟹座
+   - 性别：男
+   - 年龄：18岁
+
+以上信息完全基于您提供的上下文内容，未涉及其他外部知识。
+USER:张自强的星座
+
+Context information is below, surrounded by ---------------------
+
+---------------------
+---------------------
+
+Given the context and provided history information and not prior knowledge,
+reply to the user comment. If the answer is not in the context, inform
+the user that you can't answer the question.
+
+ASSISTANT:根据提供的上下文信息，张自强的星座是**巨蟹座**。此信息明确记载于用户历史提问中（"张自强是星座的巨蟹，性别是男，年龄是18岁"），完全基于上下文内容，无其他外部信息补充。
+---------------------
+
+
+User Messages咖啡的特点？
+
+Context information is below, surrounded by ---------------------
+
+---------------------
+咖啡的苦味可以避免吗？
+通过控制萃取参数可以减少苦味，但适量苦味是咖啡的正常特征。
+如何判断咖啡豆的新鲜度？
+新鲜的咖啡豆应该有浓郁的香气，按压时会有脆响，如果闻到油腻味或霉味说明已变质。
+如何判断咖啡的新鲜度？
+新鲜咖啡冲泡时会有丰富泡沫（crema），香气浓郁持久。
+---------------------
+
+Given the context and provided history information and not prior knowledge,
+reply to the user comment. If the answer is not in the context, inform
+the user that you can't answer the question.
+
+Context信息如下：
+chat_memory_conversation_id:UserId
+qa_retrieved_documents:[Document{id='1aceeab3-78ae-3c08-a47d-fa6d10aa448e', text='咖啡的苦味可以避免吗？
+通过控制萃取参数可以减少苦味，但适量苦味是咖啡的正常特征。', media='null', metadata={distance=0.16305918, vector_score=0.16305918}, score=0.8369408249855042}, Document{id='e696fdbd-77f6-3bd5-98cc-115e08a050f3', text='如何判断咖啡豆的新鲜度？
+新鲜的咖啡豆应该有浓郁的香气，按压时会有脆响，如果闻到油腻味或霉味说明已变质。', media='null', metadata={distance=0.1711477, vector_score=0.1711477}, score=0.8288522958755493}, Document{id='d3e7a84d-f2f0-32ec-bfbe-95bf9e0615d7', text='如何判断咖啡的新鲜度？
+新鲜咖啡冲泡时会有丰富泡沫（crema），香气浓郁持久。', media='null', metadata={distance=0.17509735, vector_score=0.17509735}, score=0.8249026536941528}]

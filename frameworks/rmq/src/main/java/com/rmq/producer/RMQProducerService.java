@@ -1,6 +1,8 @@
 package com.rmq.producer;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.rocketmq.spring.support.DelayMode;
@@ -69,18 +71,18 @@ public class RMQProducerService {
         // 记录当前时间用于计算相对时间的目标点
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime targetTime = null;
-
+        SendResult result=null;
         if (DelayMode.DELAY_MILLISECONDS.equals(timeUnit)) {
             // 相对毫秒延迟
             // 调用源码中定义的 syncSendDelayTimeMills
-            rocketMQTemplate.syncSendDelayTimeMills(topic, msgContent, timeSize);
+            result=rocketMQTemplate.syncSendDelayTimeMills(topic, msgContent, timeSize);
             // 计算预估投递时间：当前时间 + 毫秒数
             targetTime = currentTime.plus(timeSize, ChronoUnit.MILLIS);
 
         } else if (DelayMode.DELAY_SECONDS.equals(timeUnit)) {
             // 相对秒级延迟
             // 调用源码中定义的 syncSendDelayTimeSeconds
-            rocketMQTemplate.syncSendDelayTimeSeconds(topic, msgContent, timeSize);
+            result=rocketMQTemplate.syncSendDelayTimeSeconds(topic, msgContent, timeSize);
             // 计算预估投递时间：当前时间 + 秒数
             targetTime = currentTime.plusSeconds(timeSize);
 
@@ -88,13 +90,18 @@ public class RMQProducerService {
             // 绝对时间投递 (指定时间戳)
             // 注意：这里的 timeSize 实际上代表的是 绝对时间戳 (System.currentTimeMillis() + delay)
             // 调用源码中定义的 syncSendDeliverTimeMills
-            rocketMQTemplate.syncSendDeliverTimeMills(topic, msgContent, timeSize);
+            result=rocketMQTemplate.syncSendDeliverTimeMills(topic, msgContent, timeSize);
 
             // 将时间戳转换为 LocalDateTime 用于日志打印
             targetTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeSize), ZoneId.systemDefault());
         }
 
-        log.info("定时消息已发送 | 模式: {} | 数值: {} | 预计投递时间: {}", timeUnit, timeSize, targetTime);
+        if (!SendStatus.SEND_OK.equals(result.getSendStatus())) {
+            log.error("消息发送失败，状态: {}", result.getSendStatus());
+        } else {
+            log.info("定时消息已发送 | 模式: {} | 数值: {} | 预计投递时间: {}", timeUnit, timeSize, targetTime);
+
+        }
     }
 
     /*

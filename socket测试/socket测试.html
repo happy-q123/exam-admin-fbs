@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 专业调试终端</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.5; height: 100vh; box-sizing: border-box; overflow: hidden; /* 防止 Body 滚动 */ }
+
+        /* 核心布局修复：限制高度，禁止溢出 */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%; /* 占满父容器 */
+            overflow: hidden; /* 关键：禁止 Grid 本身被撑大 */
+        }
+        @media (max-width: 800px) { .app-grid { grid-template-columns: 1fr; height: auto; overflow-y: auto; } }
+
+        .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; border: 1px solid var(--border); flex-shrink: 0; /* 防止卡片被挤压 */ }
+        h3 { margin-top: 0; font-size: 16px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: border 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        button:hover { opacity: 0.9; }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-sm { padding: 5px 10px; font-size: 12px; flex: initial; }
+
+        .status-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+        .status-connected { background: #dcfce7; color: #166534; }
+        .status-disconnected { background: #fee2e2; color: #991b1b; }
+        .led { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-connected .led { background: #166534; box-shadow: 0 0 5px #166534; }
+        .status-disconnected .led { background: #991b1b; }
+
+        .sub-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
+        .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .sub-dest { font-family: monospace; font-weight: bold; color: var(--primary); font-size: 13px; }
+
+        /* --- 修复右侧列布局 --- */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-width: 0; /* 关键修复：允许 Flex 子项缩小，防止被长文本撑宽 */
+            overflow: hidden; /* 关键修复：防止内容溢出父容器 */
+        }
+
+        .console-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0; /* 关键修复：允许高度缩小 */
+            overflow: hidden;
+        }
+
+        .console-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
+
+        .log-box {
+            flex: 1;
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            min-height: 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            border: 1px solid #333;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+            display: none;
+            /* 关键修复：长字符串强制换行 */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .log-entry.show { display: block; }
+        .log-meta { color: #569cd6; margin-right: 8px; font-size: 11px; opacity: 0.7; }
+
+        .c-debug { color: #808080; }
+        .c-info { color: #d4d4d4; }
+        .c-warn { color: #cca700; }
+        .c-error { color: #f48771; }
+        .c-success { color: #89d185; }
+        .c-in { color: #4ec9b0; }
+        .c-out { color: #ce9178; }
+    </style>
+</head>
+<body>
+
+<div class="app-grid">
+    <div class="sidebar">
+        <div class="card">
+            <h3>
+                <span>🔌 连接配置</span>
+                <div id="statusBadge" class="status-badge status-disconnected">
+                    <span class="led"></span> <span id="statusText">未连接</span>
+                </div>
+            </h3>
+            <div class="form-group">
+                <label>WS 地址</label>
+                <input type="text" id="wsUrl" value="ws://localhost:7049/message/ws">
+            </div>
+            <div class="form-group">
+                <label>Token (JWT)</label>
+                <input type="password" id="wsToken" placeholder="Bearer Token..." value="">
+            </div>
+            <div class="btn-group">
+                <button onclick="app.connect()" class="btn-primary" id="btnConnect">连接</button>
+                <button onclick="app.disconnect()" class="btn-danger" id="btnDisconnect" disabled>断开</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📡 频道订阅管理</h3>
+            <div class="form-group">
+                <label>Destination (Topic/Queue)</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="subDest" placeholder="/topic/public" value="/topic/test">
+                    <button onclick="app.addSubscription()" class="btn-success btn-sm" style="width: 60px;">+ 订阅</button>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>已订阅频道:</label>
+                <div id="emptySubHint" style="font-size: 12px; color: #999; text-align: center; padding: 10px;">暂无订阅</div>
+                <ul id="subList" class="sub-list">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-column">
+        <div class="card">
+            <h3>📨 发送消息调试</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>目标地址 (Destination)</label>
+                    <input type="text" id="sendDest" value="/app/test">
+                </div>
+                <div class="form-group">
+                    <label>负载内容 (JSON)</label>
+                    <input type="text" id="sendBody" value='{"msg": "hello"}'>
+                </div>
+            </div>
+            <div class="btn-group" style="margin-top: 5px;">
+                <button onclick="app.sendMessage()" class="btn-primary">发送消息</button>
+            </div>
+        </div>
+
+        <div class="card console-container">
+            <div class="console-toolbar">
+                <h3>🖥️ 实时日志</h3>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="margin:0; font-weight: normal;">日志过滤:</label>
+                    <select id="logLevel" onchange="app.changeLogLevel()" style="padding: 4px; width: 100px;">
+                        <option value="0">全部 (Debug)</option>
+                        <option value="1" selected>常规 (Info)</option>
+                        <option value="2">警告 (Warn)</option>
+                        <option value="3">仅错误 (Error)</option>
+                    </select>
+                    <button onclick="app.clearLog()" class="btn-sm" style="background: #475569;">清空</button>
+                </div>
+            </div>
+            <div id="logBox" class="log-box">
+                <div class="log-entry show"><span class="log-meta">[System]</span> <span class="c-info">控制台准备就绪...</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const LOG_LEVEL = { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 };
+
+    class WebSocketService {
+        constructor() {
+            this.client = null;
+            this.isConnected = false;
+            this.token = null;
+            this.messageQueue = [];
+            this.activeSubscriptions = new Map();
+            this._initVisibilityListener();
+        }
+
+        _initVisibilityListener() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    logger.debug('👀 页面回到前台，检查连接状态...');
+                    if (!this.isConnected && this.client && this.token) {
+                        logger.warn('⚠️ 连接已断开，防断连机制触发，尝试重连...');
+                        this.client.activate();
+                    }
+                } else {
+                    logger.debug('😴 页面切换到后台 (Tab Hidden)');
+                }
+            });
+        }
+
+        connect(config) {
+            if (this.isConnected) return;
+            this.token = config.token;
+
+            this.client = new StompJs.Client({
+                brokerURL: config.url,
+                connectHeaders: {
+                    Authorization: `Bearer ${config.token}`
+                    // User ID 已完全移除
+                },
+                heartbeatIncoming: 20000,
+                heartbeatOutgoing: 20000,
+                reconnectDelay: 5000,
+                debug: (str) => {
+                    if (!str.includes('PING') && !str.includes('PONG')) logger.debug(`[Stomp] ${str}`);
+                },
+                onConnect: () => {
+                    this.isConnected = true;
+                    app.updateStatusUI(true);
+                    logger.success('🎉 WebSocket 连接成功!');
+                    this._flushMessageQueue();
+                    this._resubscribeAll();
+                },
+                onStompError: (frame) => {
+                    logger.error(`协议错误: ${frame.headers['message']}`);
+                },
+                onWebSocketClose: () => {
+                    this.isConnected = false;
+                    app.updateStatusUI(false);
+                    logger.warn('🔌 连接断开 (等待自动重连...)');
+                }
+            });
+
+            logger.info(`🚀 开始连接: ${config.url}...`);
+            this.client.activate();
+        }
+
+        subscribe(destination) {
+            if (this.activeSubscriptions.has(destination)) {
+                logger.warn(`重复订阅: ${destination}`);
+                return;
+            }
+            const subInfo = { destination, subObj: null };
+            if (this.isConnected && this.client) {
+                subInfo.subObj = this._doStompSubscribe(destination);
+            } else {
+                logger.info(`📝 已记录订阅 (等待连接后生效): ${destination}`);
+            }
+            this.activeSubscriptions.set(destination, subInfo);
+            app.renderSubList();
+        }
+
+        _doStompSubscribe(destination) {
+            const sub = this.client.subscribe(destination, (msg) => {
+                logger.incoming(`收到 [${destination}]: ${msg.body}`);
+            });
+            logger.success(`✅ 订阅成功: ${destination}`);
+            return sub;
+        }
+
+        unsubscribe(destination) {
+            const info = this.activeSubscriptions.get(destination);
+            if (info) {
+                if (info.subObj) info.subObj.unsubscribe();
+                this.activeSubscriptions.delete(destination);
+                logger.info(`🗑️ 已取消订阅: ${destination}`);
+                app.renderSubList();
+            }
+        }
+
+        _resubscribeAll() {
+            if (this.activeSubscriptions.size === 0) return;
+            logger.info(`🔄 正在恢复 ${this.activeSubscriptions.size} 个订阅...`);
+            this.activeSubscriptions.forEach((info, dest) => {
+                info.subObj = this._doStompSubscribe(dest);
+            });
+        }
+
+        send(destination, bodyObj) {
+            const body = JSON.stringify(bodyObj);
+            if (this.client && this.isConnected) {
+                this.client.publish({ destination, body });
+                logger.outgoing(`发送至 [${destination}]: ${body}`);
+            } else {
+                this.messageQueue.push({ destination, body });
+                logger.warn(`🛑 未连接，消息已缓冲 (${this.messageQueue.length})`);
+            }
+        }
+
+        _flushMessageQueue() {
+            while (this.messageQueue.length > 0) {
+                const item = this.messageQueue.shift();
+                this.client.publish(item);
+                logger.success(`🚀 补发消息: ${item.destination}`);
+            }
+        }
+
+        disconnect() {
+            if (this.client) this.client.deactivate();
+            this.isConnected = false;
+            this.activeSubscriptions.clear();
+            this.messageQueue = [];
+            app.updateStatusUI(false);
+            app.renderSubList();
+            logger.error('🛑 已主动断开连接');
+        }
+    }
+
+    const wsService = new WebSocketService();
+
+    const app = {
+        connect: () => {
+            const url = document.getElementById('wsUrl').value;
+            const token = document.getElementById('wsToken').value;
+
+            document.getElementById('btnConnect').disabled = true;
+            document.getElementById('btnDisconnect').disabled = false;
+
+            wsService.connect({ url, token });
+        },
+
+        disconnect: () => {
+            wsService.disconnect();
+            document.getElementById('btnConnect').disabled = false;
+            document.getElementById('btnDisconnect').disabled = true;
+        },
+
+        updateStatusUI: (isConnected) => {
+            const badge = document.getElementById('statusBadge');
+            const text = document.getElementById('statusText');
+            if (isConnected) {
+                badge.className = 'status-badge status-connected';
+                text.innerText = '已连接';
+            } else {
+                badge.className = 'status-badge status-disconnected';
+                text.innerText = '未连接';
+            }
+        },
+
+        addSubscription: () => {
+            const dest = document.getElementById('subDest').value;
+            if (!dest) return;
+            wsService.subscribe(dest);
+        },
+
+        removeSubscription: (dest) => {
+            wsService.unsubscribe(dest);
+        },
+
+        renderSubList: () => {
+            const listEl = document.getElementById('subList');
+            const emptyHint = document.getElementById('emptySubHint');
+            listEl.innerHTML = '';
+
+            if (wsService.activeSubscriptions.size === 0) {
+                emptyHint.style.display = 'block';
+                return;
+            }
+
+            emptyHint.style.display = 'none';
+            wsService.activeSubscriptions.forEach((val, key) => {
+                const li = document.createElement('li');
+                li.className = 'sub-item';
+                li.innerHTML = `
+                <div>
+                    <div class="sub-dest">${key}</div>
+                    <div class="sub-id" style="font-size:11px; color:#666">状态: ${wsService.isConnected ? '监听中 🟢' : '等待连接 🟡'}</div>
+                </div>
+                <button class="btn-danger btn-sm" onclick="app.removeSubscription('${key}')">取消</button>
+            `;
+                listEl.appendChild(li);
+            });
+        },
+
+        sendMessage: () => {
+            const dest = document.getElementById('sendDest').value;
+            const bodyStr = document.getElementById('sendBody').value;
+            try {
+                const body = JSON.parse(bodyStr);
+                wsService.send(dest, body);
+            } catch (e) {
+                logger.error('JSON 格式错误，请检查输入');
+            }
+        },
+
+        changeLogLevel: () => {
+            const level = parseInt(document.getElementById('logLevel').value);
+            logger.currentLevel = level;
+            logger.refreshVisibility();
+        },
+
+        clearLog: () => {
+            document.getElementById('logBox').innerHTML = '';
+        }
+    };
+
+    const logger = {
+        currentLevel: 1,
+
+        _write: (msg, type, levelVal) => {
+            const box = document.getElementById('logBox');
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.dataset.level = levelVal;
+
+            if (levelVal >= logger.currentLevel) {
+                div.classList.add('show');
+            }
+
+            const time = new Date().toLocaleTimeString();
+            let colorClass = 'c-info';
+            let icon = 'ℹ️';
+
+            switch(type) {
+                case 'debug': colorClass = 'c-debug'; icon = '🐞'; break;
+                case 'info': colorClass = 'c-info'; icon = 'ℹ️'; break;
+                case 'warn': colorClass = 'c-warn'; icon = '⚠️'; break;
+                case 'error': colorClass = 'c-error'; icon = '❌'; break;
+                case 'success': colorClass = 'c-success'; icon = '✅'; break;
+                case 'in': colorClass = 'c-in'; icon = '📥'; break;
+                case 'out': colorClass = 'c-out'; icon = '📤'; break;
+            }
+
+            div.innerHTML = `<span class="log-meta">[${time}]</span> <span class="${colorClass}">${icon} ${msg}</span>`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        },
+
+        refreshVisibility: () => {
+            const entries = document.querySelectorAll('.log-entry');
+            entries.forEach(entry => {
+                const entryLevel = parseInt(entry.dataset.level);
+                if (entryLevel >= logger.currentLevel) {
+                    entry.classList.add('show');
+                } else {
+                    entry.classList.remove('show');
+                }
+            });
+        },
+
+        debug: (msg) => logger._write(msg, 'debug', LOG_LEVEL.DEBUG),
+        info: (msg) => logger._write(msg, 'info', LOG_LEVEL.INFO),
+        warn: (msg) => logger._write(msg, 'warn', LOG_LEVEL.WARN),
+        error: (msg) => logger._write(msg, 'error', LOG_LEVEL.ERROR),
+        success: (msg) => logger._write(msg, 'success', LOG_LEVEL.INFO),
+        incoming: (msg) => logger._write(msg, 'in', LOG_LEVEL.INFO),
+        outgoing: (msg) => logger._write(msg, 'out', LOG_LEVEL.INFO)
+    };
+</script>
+
+</body>
+</html>

@@ -33,7 +33,7 @@ public class ExamServiceConsumer implements RocketMQListener<String> {
                 .receiverId(s)
                 .build();
 
-        infoOnlineUserFeignClient.infoOnlineUsers(dto);
+//        infoOnlineUserFeignClient.infoOnlineUsers(dto);
         log.info("应该统一关闭考试了: {}", s);
 
     }

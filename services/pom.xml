@@ -17,6 +17,7 @@
         <module>exam</module>
         <module>question</module>
         <module>message</module>
+        <module>ai</module>
     </modules>
 
     <properties>

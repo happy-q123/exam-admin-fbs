@@ -7,30 +7,47 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   application:
-    name: exam-service
+    name: ai-service
+
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # 【关键】指向 Auth Server 的公钥地址
-          # 资源服务器启动时，会访问这个地址拿到公钥，之后就在本地离线验签，速度极快
-          jwk-set-uri: http://localhost:7050/auth/oauth2/jwks
-#    sentinel:
-#      transport:
-#        dashboard: 127.0.0.1:8080
-#      #默认是懒加载，第一次调用的时候才会加载到Dashboard里。这里取消懒加载
-#      eager: true
+  ai:
+    retry:
+      enabled: false  # 禁用自动重试
+    zhipuai:
+      api-key: b018802065574260ae4463ecc9ad872e.FPyHyG5R8n4GKGUu
+      embedding:
+        options:
+          model: embedding-3
+          dimensions: 256
+
+    vectorstore:
+      redis:
+        url: redis://localhost:6378  # 某些版本的 Spring AI 可能需要显式配置 URI
+        #        indexName: my-vector-index
+        indexName: exam
+        prefix: "doc:"
+        initialize-schema: true
+
+
+    ollama:
+      base-url: http://localhost:11434
+      read-timeout: 120s
+
+      chat:
+        model: qwen3:4b
+        options:
+          temperature: 0.7
+      embedding:
+        model: embeddinggemma:latest
 
 server:
-  port: 7056
+  port: 7055
   servlet:
-    # 应用的访问路径
-    context-path: /exam
+    context-path: /ai
 
 
 mybatis-plus:
@@ -52,9 +69,5 @@ mybatis-plus:
       id-type: auto
 
 
-rocketmq:
-  name-server: 127.0.0.1:9876
-  producer:
-    group: exam-fbs-producer-group  # 生产者组名
-    send-message-timeout: 3000 # 发送超时时间（毫秒）
-
+redis-stack:
+  port: 6378

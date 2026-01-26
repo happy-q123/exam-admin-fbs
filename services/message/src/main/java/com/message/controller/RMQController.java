@@ -17,6 +17,7 @@ public class RMQController {
 
     @GetMapping("/testDelayMessage")
     RestResponse testDelayMessage(){
+        rmqProducerService.sendAsyncMessage(RMQTopicEnum.DEFAULT.getTopic(),"测试消息");
         rmqProducerService.sendTimerMessage(RMQTopicEnum.DEFAULT.getTopic(),"测试延时消息",20000L, DelayMode.DELAY_MILLISECONDS);
         return RestResponse.success();
     }
