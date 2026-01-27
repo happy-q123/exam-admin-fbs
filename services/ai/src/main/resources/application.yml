@@ -77,3 +77,23 @@ mybatis-plus:
 redis-stack:
   port: 6378
   password: 123456
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  # 1. 定义事务组名称（必须与下面 mapping 中的 key 一致）
+  tx-service-group: my_test_tx_group
+
+  registry:
+    type: file # 强制使用文件模式
+  config:
+    type: file # 强制使用文件模式
+
+  service:
+    # 2. 关键映射：告诉 Seata，“my_test_tx_group”这个组，对应的是 "default" 集群
+    vgroup-mapping:
+      my_test_tx_group: default
+
+    # 3. 地址列表：告诉 Seata，"default" 集群的地址在哪里
+    grouplist:
+      default: 127.0.0.1:8091
