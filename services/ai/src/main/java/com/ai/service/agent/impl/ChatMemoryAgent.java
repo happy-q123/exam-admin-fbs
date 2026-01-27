@@ -41,7 +41,7 @@ public class ChatMemoryAgent extends AbstractAgentService {
         HistorySearchAdvisor historySearchAdvisor = HistorySearchAdvisor.builder(vectorStore)
                 .defaultTopK(10)
                 .order(2)
-                .persistAndFilter("conversationId", "messageSource")
+                .persistAndFilter("conversationId", "messageSource","userId")
                 .build();
         advisors.add(historySearchAdvisor);
 
@@ -64,6 +64,18 @@ public class ChatMemoryAgent extends AbstractAgentService {
     @Override
     public Object execute(String query) {
         return chatClient.prompt(query).call().chatClientResponse();
+    }
+
+    @Override
+    public Object execute(String query, String userId) {
+        return chatClient.prompt(query)
+                // 关键在这里：advisors(...) 不仅仅是添加新 Advisor，
+                // 它主要用于给已有的 defaultAdvisors 传递运行时参数！
+                .advisors(a ->
+                        a.param("userId", userId)
+                )
+                .call()
+                .chatClientResponse();
     }
 
     @Override

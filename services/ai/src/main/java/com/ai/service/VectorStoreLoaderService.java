@@ -22,6 +22,7 @@ import java.util.UUID;
 /**
  * 向量数据库加载服务
  * 专门负责将本地资源（CSV, TXT）处理并加载到 Redis 向量库中
+ * 此类用来测试，作为例子
  */
 @Service
 public class VectorStoreLoaderService {

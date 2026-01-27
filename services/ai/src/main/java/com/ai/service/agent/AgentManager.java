@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public class AgentManager {
     private Map<String, AbstractAgentService> agentMap;
 
+    //注入所有AbstractAgentService的实现bean，并用getAgentName作为map的key名，注意不能出现key重复。
     public AgentManager(List<AbstractAgentService> agentServices) {
         agentMap = agentServices.stream().
                 collect(Collectors.toMap(AbstractAgentService::getAgentName, agentService -> agentService));

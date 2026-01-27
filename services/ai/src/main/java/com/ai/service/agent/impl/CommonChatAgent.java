@@ -25,6 +25,11 @@ public class CommonChatAgent extends AbstractAgentService {
     }
 
     @Override
+    public Object execute(String query, String userId) {
+        return null;
+    }
+
+    @Override
     public Object execute(String query) {
         return chatClient.prompt(query).call().chatClientResponse();
     }

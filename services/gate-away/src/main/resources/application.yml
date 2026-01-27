@@ -37,6 +37,11 @@ spring:
           uri: lb://message-service
           predicates:
             - Path=/message/**
+        #AI服务
+        - id: ai-service_route
+          uri: lb://ai-service
+          predicates:
+            - Path=/ai/**
 
       globalcors:
         cors-configurations:

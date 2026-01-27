@@ -156,4 +156,7 @@ public abstract class AbstractAgentService implements AgentService{
     public List<Advisor> getAdvisors(){
         return new ArrayList<>(advisors);
     }
+
+    // 假设你在接口里定义了这个方法，或者直接作为新方法添加
+    public abstract Object execute(String query, String userId);
 }

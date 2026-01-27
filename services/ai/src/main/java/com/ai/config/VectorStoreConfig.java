@@ -46,6 +46,7 @@ public class VectorStoreConfig {
         List<RedisVectorStore.MetadataField> metadataFields = List.of(
                 RedisVectorStore.MetadataField.tag("conversationId"),
                 RedisVectorStore.MetadataField.tag("messageType"),
+                RedisVectorStore.MetadataField.tag("userId"),
                 //conversation or knowledge
                 //todo
                 // 自建库有这个tag值为knowledge，VectorStoreAdvisor类的tag为conversationId。

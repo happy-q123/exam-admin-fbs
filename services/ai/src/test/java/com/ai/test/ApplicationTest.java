@@ -37,7 +37,8 @@ public class ApplicationTest {
 //        log.warn("query1：{}，最终结果：{}",query1,judgeResult.chatResponse().getResult().getOutput().getText());
 
         String query2="西游记中有迪迦奥特曼这个人物吗？";
-        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatWithJudge(query2);
+//        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatWithJudge(query2);
+        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatFlow(111L,query2);
         log.warn("query2：{}，最终结果：{}",query2,judgeResult2.chatResponse().getResult().getOutput().getText());
     }
 }

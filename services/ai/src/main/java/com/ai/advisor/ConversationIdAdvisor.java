@@ -7,7 +7,6 @@ import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 
 public class ConversationIdAdvisor implements BaseAdvisor {
     private int order=0;
-    private String conversationId="userId";
 
     //BaseChatMemoryAdvisor类默认获取conversationId的key
     private final String defaultConversationId="chat_memory_conversation_id";
@@ -23,9 +22,9 @@ public class ConversationIdAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
-//        chatClientRequest.context().put(defaultConversationId,conversationId);
-        chatClientRequest.context().put(defaultConversationId,"userId");
-        chatClientRequest.context().put("user-query",chatClientRequest.prompt().getUserMessage().getText());
+//        chatClientRequest.context().put(defaultConversationId,"userId");
+        chatClientRequest.context().put("userId",chatClientRequest.context().get("userId"));
+        chatClientRequest.context().put("userQuery",chatClientRequest.prompt().getUserMessage().getText());
         return chatClientRequest;
     }
 

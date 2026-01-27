@@ -8,7 +8,13 @@ spring:
 
   application:
     name: ai-service
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # 【关键】指向 Auth Server 的公钥地址
+          # 资源服务器启动时，会访问这个地址拿到公钥，之后就在本地离线验签，速度极快
+          jwk-set-uri: http://localhost:7050/auth/oauth2/jwks
   cloud:
     nacos:
       discovery:

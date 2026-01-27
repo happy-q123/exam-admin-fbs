@@ -11,10 +11,14 @@
 
     <artifactId>ai</artifactId>
     <dependencies>
-        <!--        它会自动把 Spring Security 6.x、OAuth2 核心库、JOSE (加密库) 、starter.web全部带进来。-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
         <!--远程调用OpenFeign-->
