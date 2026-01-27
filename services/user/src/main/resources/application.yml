@@ -1,7 +1,7 @@
 spring:
   datasource:
     # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
-    url: jdbc:postgresql://localhost:5432/new-exam?currentSchema=public
+    url: jdbc:postgresql://localhost:5433/new-exam?currentSchema=public
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver

@@ -15,6 +15,9 @@ public class VectorStoreConfig {
 
     @Value("${redis-stack.port:6378}") // 冒号后是默认值，如果配置文件没写就用6378
     private int redisStackPort;
+
+    @Value("${redis-stack.password:123456}")
+    private String password;
 //    RedisVectorStore
     //抄官方版的下面
     @Bean
@@ -26,10 +29,15 @@ public class VectorStoreConfig {
         if (jedisConnectionFactory.isUseSsl()) {
             configBuilder.ssl(true);
         }
-        // 设置密码
-        if (jedisConnectionFactory.getPassword() != null) {
+        // 这里我们要优先使用你自己定义的 password 变量
+        // 因为你的端口改成了 this.redisStackPort，密码也应该配套使用 this.password
+        if (this.password != null && !this.password.isEmpty()) {
+            configBuilder.password(this.password);
+        } else if (jedisConnectionFactory.getPassword() != null) {
+            // 如果自定义密码为空，再尝试兜底使用全局 Redis 密码
             configBuilder.password(jedisConnectionFactory.getPassword());
         }
+
         // 设置超时
         configBuilder.timeoutMillis(jedisConnectionFactory.getTimeout());
         // 设置 ClientName
