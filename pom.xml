@@ -25,6 +25,7 @@
         <redisson.version>3.27.2</redisson.version>
         <rocket-mq.version>2.3.2</rocket-mq.version>
         <spring-ai.version>1.1.0</spring-ai.version>
+        <kinfe4j.version>4.5.0</kinfe4j.version>
 
     </properties>
 
@@ -36,6 +37,20 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+<!--            生成自己的接口文档，一般的服务使用这个。-->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${kinfe4j.version}</version>
+            </dependency>
+
+<!--            接口文档汇聚，gate-away服务使用这个-->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-gateway-spring-boot-starter</artifactId>
+                <version>${kinfe4j.version}</version>
             </dependency>
 
             <dependency>

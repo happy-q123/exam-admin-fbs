@@ -1,6 +1,6 @@
 package com.ai.linshi;
 
-import io.seata.spring.annotation.GlobalTransactional; // 必须引入这个
+import org.apache.seata.spring.annotation.GlobalTransactional;
 import io.seata.core.context.RootContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

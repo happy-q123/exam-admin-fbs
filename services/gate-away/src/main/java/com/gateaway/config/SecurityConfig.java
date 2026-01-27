@@ -68,6 +68,15 @@ public class SecurityConfig {
                 // 1. 这里的 authorizeExchange 保持不变
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/auth/**", "/user/common/**", "/error").permitAll()
+                        //knife4j。一般服务也需要放行这个，这样才能拉取到目前服务的接口文档
+                        .pathMatchers(
+                                        "/doc.html",              // 文档主页
+                                        "/webjars/**",            // 静态资源 (css, js)
+                                        "/v3/api-docs/**",        // OpenAPI 3.0 接口描述 JSON
+                                        "/*/v3/api-docs/**",        // "/任何服务前缀/v3/api-docs/**"
+                                        "/swagger-resources/**",  // Swagger 资源
+                                        "/favicon.ico"            // 图标
+                                ).permitAll()
                         .pathMatchers(org.springframework.http.HttpMethod.OPTIONS).permitAll() // 放行预检
                         .anyExchange().authenticated()
                 )

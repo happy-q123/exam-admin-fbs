@@ -56,5 +56,18 @@ spring:
 #      #默认是懒加载，第一次调用的时候才会加载到Dashboard里。这里取消懒加载
 #      eager: true
 
+knife4j:
+  gateway:
+    enabled: true
+    # 指定服务发现模式：manual(手动配置) / service(服务发现) / discover(最强自动模式)
+    strategy: discover
+    discover:
+      enabled: true
+      # 指定 OpenAPI 版本，SpringBoot3 通常是 openapi3
+      version: openapi3
+      # 【关键】排除不需要显示文档的服务（比如网关自己、Seata、Nacos等）
+      excluded-services:
+        - gateway-service
+          #文档地址：http://localhost:7049/doc.html
 server:
   port: 7049
