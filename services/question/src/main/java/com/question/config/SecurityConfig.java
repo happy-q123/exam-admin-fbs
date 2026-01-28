@@ -32,6 +32,13 @@ public class SecurityConfig {
                 // 2. 配置权限规则
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(
+                                "/doc.html",
+                                "/webjars/**",
+                                "/v3/api-docs/**",       // 最重要：这是接口数据源
+                                "/swagger-resources/**",
+                                "/favicon.ico"
+                        ).permitAll()
                         // 其他所有请求都需要认证（虽然 Auth Server 不会调别的，但这是安全兜底）
                         .anyRequest().authenticated()
                 );

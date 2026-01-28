@@ -35,6 +35,13 @@ public class SecurityConfig {
                         // 只有 Token 里包含 scope "order:read" 的请求才能访问 /orders/**注意：Spring Security 会自动给 scope 加上 "SCOPE_" 前缀
                         .requestMatchers("/option/**").hasAuthority("SCOPE_order:read")
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(
+                                "/doc.html",
+                                "/webjars/**",
+                                "/v3/api-docs/**",       // 最重要：这是接口数据源
+                                "/swagger-resources/**",
+                                "/favicon.ico"
+                        ).permitAll()
 
                         // 其他所有请求都需要认证（虽然 Auth Server 不会调别的，但这是安全兜底）
                         .anyRequest().authenticated()

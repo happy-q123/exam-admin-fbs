@@ -33,6 +33,13 @@ public class SecurityConfig {
                         //ws的握手前期需要http，且浏览器的这个http握手不能携带header，所以不能让security处理token，只能配置ws拦截器
                         .requestMatchers("/ws","/ws-sockjs").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(
+                                "/doc.html",
+                                "/webjars/**",
+                                "/v3/api-docs/**",       // 最重要：这是接口数据源
+                                "/swagger-resources/**",
+                                "/favicon.ico"
+                        ).permitAll()
 
                         // 其他所有请求都需要认证（虽然 Auth Server 不会调别的，但这是安全兜底）
                         .anyRequest().authenticated()

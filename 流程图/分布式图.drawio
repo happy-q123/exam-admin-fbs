@@ -1,0 +1,216 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.16 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.16" pages="2">
+  <diagram name="第 1 页" id="noy624gZ3v9wFf8S-13F">
+    <mxGraphModel dx="2570" dy="698" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="IxWagaZLvedsXYqfcEYn-2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="951" y="1112" width="308" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-1" value="网关&lt;div&gt;Nacos&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="964" y="1130" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-3" value="路由" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="964" y="1199" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-4" value="负载均衡" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="964" y="1269" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-5" value="配置中心" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1116" y="1130" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-6" value="服务注册" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1119" y="1199" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-8" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="275" y="1354" width="417" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-7" value="服务发现" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1123" y="1269" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-9" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="326" y="1377" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-11" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="501" y="1380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-14" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="323" y="1480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-15" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="323" y="1576" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-16" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="501" y="1484" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-17" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="501" y="1580" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-18" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="900" y="1359" width="417" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-19" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="951" y="1382" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-20" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1126" y="1385" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-21" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="948" y="1485" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-22" value="服务1" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="948" y="1581" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-23" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1126" y="1489" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-24" value="服务2" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1126" y="1585" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-25" value="远程调用&lt;div&gt;RPC&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="747" y="1401" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-26" value="服务熔断" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="747" y="1474" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IxWagaZLvedsXYqfcEYn-27" value="分布式事务" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="749" y="1554" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-1" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;分布式在线考试平台&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="379" y="1248" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-3" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;用户在线功能&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="72" y="2400" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-4" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;使用jwt做权限认证&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2101" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-9" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;登录功能&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2192" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-10" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;注册功能&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2284" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-11" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;验证码功能&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2375" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-12" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;仅最新token有效功能（单点登录）&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2466" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-13" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;修改密码&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2558" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-14" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;账号是否封禁&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="383.5" y="2649" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-15" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;问题相关&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="785" y="2391" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-16" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;添加问题&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2101" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-17" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;修改问题&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2209" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-18" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;查询问题&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2318" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-19" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;删除问题&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2426" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-20" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;试卷关联&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2535" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-21" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;试卷关联&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1077" y="2643" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-29" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;考试相关&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="72" y="3142" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-30" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;高并发抢考试名额&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="2855" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-31" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;增加考试&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="2963" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-32" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;查询试卷&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="3072" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-33" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;删除考试&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="3180" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-34" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;问题关联&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="3289" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-35" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;试卷关联&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="3397" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-36" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;考试记录&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="806" y="3227" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-37" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;顶住开始考试的大量高并发&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="2855" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-38" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;顶住结束考试的大量高并发&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="2963" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-39" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;在线视频监考&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3072" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-40" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;强制考生下线&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3180" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-41" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;记录考试进度&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3289" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-43" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;实时在考人数&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3394" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-44" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;防止重复交卷&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3490" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-45" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;随机组卷（海量题目随机，大规模查询）&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="3500" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-46" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;用户管理&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="36" y="3745" width="239" height="81" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-47" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;增删改查&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="332" y="3754" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-55" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;（大规模请求）客观题自动改卷&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="3590" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-56" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;学生成绩表&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1081" y="3682" width="265" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="LE_BGWhzK4YAxc3m_hRa-58" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;实时成绩排行&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1078" y="2770" width="265" height="72" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="x8B5FVrtg62jLMl6dwDL" name="第 2 页">
+    <mxGraphModel dx="893" dy="119" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="0JKY76B5B1w9OQZA09As-1" value="用户服务" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="208" y="728" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0JKY76B5B1w9OQZA09As-2" value="登录、注册" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="809" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0JKY76B5B1w9OQZA09As-3" value="考试服务" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="556" y="730" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0JKY76B5B1w9OQZA09As-4" value="添加考试" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="809" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0JKY76B5B1w9OQZA09As-5" value="添加考试" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="612" y="809" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

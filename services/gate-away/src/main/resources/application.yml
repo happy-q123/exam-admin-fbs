@@ -68,6 +68,7 @@ knife4j:
       # 【关键】排除不需要显示文档的服务（比如网关自己、Seata、Nacos等）
       excluded-services:
         - gateway-service
+        - auth-service
           #文档地址：http://localhost:7049/doc.html
 server:
   port: 7049
