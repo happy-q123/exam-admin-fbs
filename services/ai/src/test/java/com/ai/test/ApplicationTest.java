@@ -1,5 +1,6 @@
 package com.ai.test;
 
+import com.ai.feign.UserErrorQuestionFeignClient;
 import com.ai.service.ChatService;
 import com.ai.service.agent.AgentManager;
 import jakarta.annotation.Resource;
@@ -17,10 +18,18 @@ public class ApplicationTest {
     @Resource
     private ChatService chatService;
 
+    @Resource
+    private UserErrorQuestionFeignClient userErrorQuestionFeignClient;
+
     @Test
     public void test() {
         String result = agentManager.doService("请用中文回答：你叫什么名字？");
         log.warn(result);
+    }
+
+    @Test
+    public void testUserErrorQuestionFeignClient() {
+        userErrorQuestionFeignClient.getErrorQuestionsByUserId(111L);
     }
 
     @Test

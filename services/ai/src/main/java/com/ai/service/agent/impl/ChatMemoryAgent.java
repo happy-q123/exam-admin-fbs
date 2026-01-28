@@ -7,6 +7,7 @@ import com.ai.advisor.ReRankAdvisor;
 import com.ai.service.ZhiPuRerankService;
 import com.ai.service.agent.AbstractAgentService;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-
+@Slf4j
 @Service
 public class ChatMemoryAgent extends AbstractAgentService {
     @Resource
@@ -28,6 +29,33 @@ public class ChatMemoryAgent extends AbstractAgentService {
         super(ollamaChatClientBuilder);
     }
 
+    /**
+     * description 初始化chatClient
+     * author zzq
+     * date 2025/12/14 21:42
+     * param
+     * return
+     */
+    @Override
+    protected void initChatClient(ChatClient.Builder chatClientBuilder){
+        if(chatClient!=null){
+            return;
+        }
+
+        ChatClient.Builder builder = chatClientBuilder
+                .defaultSystem(this.systemPrompt);
+
+        if (this.advisors != null && !this.advisors.isEmpty()) {
+            builder.defaultAdvisors(this.advisors);
+        }
+
+        //构造tool
+        this.chatClient = builder.defaultToolNames(
+                "userErrorQuestionsFunction",
+                "timeFunction",
+                "userIdFunction")
+                .build();
+    };
     @Override
     protected void initAdvisors() {
         if (advisors==null)

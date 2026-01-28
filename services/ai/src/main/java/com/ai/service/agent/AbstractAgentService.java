@@ -2,12 +2,13 @@ package com.ai.service.agent;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Slf4j
 public abstract class AbstractAgentService implements AgentService{
     protected ChatClient chatClient;
 
@@ -56,8 +57,10 @@ public abstract class AbstractAgentService implements AgentService{
      * return
      */
     protected void initChatClient(ChatClient.Builder chatClientBuilder){
-        if(chatClient!=null)
-            throw new RuntimeException("chatClient已经不为null");
+        if(chatClient!=null){
+            log.warn("ChatClient 已经存在");
+            return;
+        }
 
         ChatClient.Builder builder = chatClientBuilder
                 .defaultSystem(this.systemPrompt);
