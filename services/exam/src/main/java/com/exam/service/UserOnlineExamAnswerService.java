@@ -3,6 +3,9 @@ package com.exam.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domain.dto.UserOnlineExamAnswerDto;
 import com.domain.entity.relation.UserOnlineExamAnswer;
+import com.domain.vo.UserErrorQuestionsVo;
+
+import java.util.List;
 
 public interface UserOnlineExamAnswerService extends IService<UserOnlineExamAnswer> {
     /**
@@ -18,4 +21,11 @@ public interface UserOnlineExamAnswerService extends IService<UserOnlineExamAnsw
      * date 2026/1/7 17:56
      */
     void updateAnswer(UserOnlineExamAnswerDto userOnlineExamAnswerDto);
+
+    /*
+     * description 根据用户id获取答案记录
+     * author zzq
+     * date 2026/1/28 18:11
+    */
+    List<UserErrorQuestionsVo> getUserAnswersByUserId(Long userId);
 }

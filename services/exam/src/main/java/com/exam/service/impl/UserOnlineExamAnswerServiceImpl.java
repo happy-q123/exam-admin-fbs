@@ -1,17 +1,21 @@
 package com.exam.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.domain.dto.QuestionDto;
 import com.domain.dto.UserOnlineExamAnswerDto;
 import com.domain.entity.relation.UserOnlineExamAnswer;
 import com.domain.enums.redis.UserOnlineKeyEnum;
+import com.domain.restful.RestResponse;
+import com.domain.vo.UserErrorQuestionsVo;
+import com.exam.feign.ExamQuestionRelationFeignClient;
 import com.exam.mapper.UserOnlineExamAnswerMapper;
 import com.exam.service.UserOnlineExamAnswerService;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamAnswerMapper, UserOnlineExamAnswer>
@@ -19,7 +23,13 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
+    //todo 远程调用问题
+    private final ExamQuestionRelationFeignClient examQuestionRelationFeignClient;
     private final String USER_ONLINE_KEY = UserOnlineKeyEnum.ONLINE_USERS.buildKey();
+
+    public UserOnlineExamAnswerServiceImpl(ExamQuestionRelationFeignClient examQuestionRelationFeignClient) {
+        this.examQuestionRelationFeignClient = examQuestionRelationFeignClient;
+    }
 
     //判断用户是否在线
     boolean isUserOnline(String userId){
@@ -50,6 +60,22 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
             throw new RuntimeException("用户不在线");
         }
         updateAnswer(userOnlineExamAnswer);
+    }
+
+    @Override
+    public List<UserErrorQuestionsVo> getUserAnswersByUserId(Long userId) {
+        List<UserOnlineExamAnswer> l= lambdaQuery()
+                .eq(UserOnlineExamAnswer::getUserId,userId)
+                .list();
+
+        List<UserOnlineExamAnswerDto> userOnlineExamAnswerDtoList = UserOnlineExamAnswerDto.toDto(l) ;
+        List<Long> questionIds=l.stream().map(UserOnlineExamAnswer::getQuestionId).toList();
+        RestResponse<List<QuestionDto>> questionDtos=examQuestionRelationFeignClient.getListByIds(questionIds);
+        List<QuestionDto> questionDtoList=questionDtos.getData();
+
+        List<UserErrorQuestionsVo> resultList=UserErrorQuestionsVo.toVo(userOnlineExamAnswerDtoList,questionDtoList);
+
+        return resultList;
     }
 
     private void updateAnswer(UserOnlineExamAnswer userOnlineExamAnswer) {

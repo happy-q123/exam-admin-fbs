@@ -67,7 +67,11 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 // 1. 这里的 authorizeExchange 保持不变
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/**", "/user/common/**", "/error").permitAll()
+                        .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/user/common/**","/user/common/register").permitAll()
+                        .pathMatchers("/message/ws","/message/ws-sockjs").permitAll()
+                        .pathMatchers("/error").permitAll()
+
                         //knife4j。一般服务也需要放行这个，这样才能拉取到目前服务的接口文档
                         .pathMatchers(
                                         "/doc.html",              // 文档主页

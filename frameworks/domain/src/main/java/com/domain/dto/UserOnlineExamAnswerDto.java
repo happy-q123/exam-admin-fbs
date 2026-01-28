@@ -11,6 +11,7 @@ import lombok.*;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -62,6 +63,22 @@ public class UserOnlineExamAnswerDto extends BasePojo {
      * 答题时间
      */
     private LocalDateTime optionTime;
+
+    public static UserOnlineExamAnswerDto toDto(UserOnlineExamAnswer userOnlineExamAnswer) {
+        return  UserOnlineExamAnswerDto.builder()
+                .id(userOnlineExamAnswer.getId())
+                .answer(userOnlineExamAnswer.getAnswer())
+                .examId(userOnlineExamAnswer.getExamId())
+                .questionId(userOnlineExamAnswer.getQuestionId())
+                .score(userOnlineExamAnswer.getScore())
+                .optionTime(userOnlineExamAnswer.getOptionTime())
+                .isCorrect(userOnlineExamAnswer.getIsCorrect())
+                .build();
+    }
+
+    public static List<UserOnlineExamAnswerDto> toDto(List<UserOnlineExamAnswer> userOnlineExamAnswers) {
+        return userOnlineExamAnswers.stream().map(UserOnlineExamAnswerDto::toDto).toList();
+    }
 
     public UserOnlineExamAnswer toEntityForSave() {
         Assert.notNull(userId, "用户id不能为空");

@@ -39,7 +39,7 @@ spring:
 #      eager: true
 
 server:
-  port: 7055
+  port: 7053
   servlet:
     # 应用的访问路径
     context-path: /message
