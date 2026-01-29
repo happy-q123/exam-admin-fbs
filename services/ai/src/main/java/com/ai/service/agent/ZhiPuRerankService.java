@@ -1,4 +1,4 @@
-package com.ai.service;
+package com.ai.service.agent;
 
 
 import com.ai.dto.RerankRequest;

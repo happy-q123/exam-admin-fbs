@@ -1,4 +1,4 @@
-package com.ai.service;
+package com.ai.service.agent;
 
 public interface ChatService {
     //带结果判断的聊天

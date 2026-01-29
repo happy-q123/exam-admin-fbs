@@ -1,4 +1,4 @@
-package com.ai.service;
+package com.ai.service.agent;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;

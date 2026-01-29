@@ -1,4 +1,4 @@
-package com.ai.service;
+package com.ai.service.agent;
 
 import com.ai.service.agent.impl.ChatMemoryAgent;
 import com.ai.service.agent.impl.JudgeResultAgent;

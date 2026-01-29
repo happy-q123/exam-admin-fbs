@@ -1,7 +1,7 @@
 package com.ai.advisor;
 
 import com.ai.dto.Result;
-import com.ai.service.ZhiPuRerankService;
+import com.ai.service.agent.ZhiPuRerankService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;

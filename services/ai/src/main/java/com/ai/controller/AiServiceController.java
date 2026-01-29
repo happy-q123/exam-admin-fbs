@@ -1,5 +1,5 @@
 package com.ai.controller;//package com.test.multiagentbendiollamaqwen3vl4b.controller;
-import com.ai.service.ChatService;
+import com.ai.service.agent.ChatService;
 import com.domain.restful.RestResponse;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -7,8 +7,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 public class AiServiceController {

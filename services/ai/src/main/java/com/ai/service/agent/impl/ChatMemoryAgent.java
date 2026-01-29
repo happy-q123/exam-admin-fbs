@@ -4,7 +4,7 @@ import com.ai.advisor.ConversationIdAdvisor;
 import com.ai.advisor.HistorySearchAdvisor;
 import com.ai.advisor.InformationAdvisor;
 import com.ai.advisor.ReRankAdvisor;
-import com.ai.service.ZhiPuRerankService;
+import com.ai.service.agent.ZhiPuRerankService;
 import com.ai.service.agent.AbstractAgentService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
