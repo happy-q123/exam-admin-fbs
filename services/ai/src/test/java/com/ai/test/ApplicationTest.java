@@ -4,6 +4,7 @@ import com.ai.feign.UserErrorQuestionFeignClient;
 import com.ai.mapper.ChatMessageMapper;
 import com.ai.service.agent.ChatService;
 import com.ai.service.agent.AgentManager;
+import com.ai.service.agent.VectorStoreLoaderService;
 import com.ai.service.common.AiChatMessageService;
 import com.domain.entity.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,8 +54,8 @@ public class ApplicationTest {
         // 为了演示方便，假设我们要查刚刚插入的那条 ID=... 的数据的向量
 
         // 先查出一条数据作为“种子”，用它的向量去搜它自己，理论上相似度应该是 1.0
-        ChatMessage seed = aiChatMessageService.getById(5L); // 假设 ID 5 存在且有向量
-        if (seed == null || seed.getEmbedding() == null) {
+        ChatMessage seed = aiChatMessageService.getById(3L); // 假设 ID 5 存在且有向量
+        if (seed == null || seed.getUserEmbedding() == null) {
             log.warn("ID 5 的数据不存在或没有向量，无法测试");
             return;
         }
@@ -63,7 +64,7 @@ public class ApplicationTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String vectorStr;
         try {
-            vectorStr = objectMapper.writeValueAsString(seed.getEmbedding());
+            vectorStr = objectMapper.writeValueAsString(seed.getUserEmbedding());
         } catch (Exception e) {
             throw new RuntimeException("向量序列化失败", e);
         }
@@ -79,7 +80,7 @@ public class ApplicationTest {
             log.info("ID: {}, 相似度: {}, 内容: {}",
                     result.getId(),
                     String.format("%.4f", result.getSimilarity()), // 格式化保留4位小数
-                    result.getMessageContent());
+                    result.getUserContent());
         }
     }
 
@@ -105,5 +106,12 @@ public class ApplicationTest {
 //        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatWithJudge(query2);
         ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatFlow(111L,query2);
         log.warn("query2：{}，最终结果：{}",query2,judgeResult2.chatResponse().getResult().getOutput().getText());
+    }
+
+    @Resource
+    VectorStoreLoaderService vectorStoreLoaderService;
+    @Test
+    public void testInsertRag(){
+        vectorStoreLoaderService.loadCsvToVectorStore();
     }
 }

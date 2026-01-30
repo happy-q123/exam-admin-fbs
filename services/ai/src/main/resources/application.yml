@@ -25,10 +25,10 @@ spring:
       enabled: false  # 禁用自动重试
     zhipuai:
       api-key: b018802065574260ae4463ecc9ad872e.FPyHyG5R8n4GKGUu
-      embedding:
-        options:
-          model: embedding-3
-          dimensions: 256
+#      embedding:
+#        options:
+#          model: embedding-3
+#          dimensions: 256
 
     vectorstore:
       redis:

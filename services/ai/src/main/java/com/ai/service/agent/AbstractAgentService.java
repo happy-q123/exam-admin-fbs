@@ -53,23 +53,25 @@ public abstract class AbstractAgentService implements AgentService{
      * description 初始化chatClient
      * author zzq
      * date 2025/12/14 21:42
+     * 更新于 2026/1/30 21:40
      * param
      * return
      */
-    protected void initChatClient(ChatClient.Builder chatClientBuilder){
-        if(chatClient!=null){
-            log.warn("ChatClient 已经存在");
-            return;
-        }
+    protected void initChatClient(ChatClient.Builder chatClientBuilder) {
+        // 使用 .build().mutate() 可以从原型中获得一个全新的、干净的 Builder 副本
+        ChatClient.Builder builder = chatClientBuilder.build().mutate();
 
-        ChatClient.Builder builder = chatClientBuilder
-                .defaultSystem(this.systemPrompt);
+        // 重新应用 System Prompt
+        builder.defaultSystem(this.systemPrompt);
 
+        // 重新应用 Advisors
         if (this.advisors != null && !this.advisors.isEmpty()) {
             builder.defaultAdvisors(this.advisors);
         }
+
+        // 构建新的 Client
         this.chatClient = builder.build();
-    };
+    }
 
     /**
      * description 初始化Advisor
@@ -121,13 +123,10 @@ public abstract class AbstractAgentService implements AgentService{
      * param
      * return
      */
-    public void flushChatClient(){
-        ChatClient.Builder builder = this.chatClient.mutate()
-                .defaultSystem(this.systemPrompt);
-        if (this.advisors != null && !this.advisors.isEmpty()) {
-            builder.defaultAdvisors(this.advisors);
-        }
-        this.chatClient = builder.build();
+    public void flushChatClient() {
+        // 直接调用 initChatClient，利用上面的逻辑进行“纯净重建”
+        // 传入原本的 Builder 原型即可
+        initChatClient(this.chatClientBuilder);
     }
 
     public void addAdvisor(Advisor advisor){

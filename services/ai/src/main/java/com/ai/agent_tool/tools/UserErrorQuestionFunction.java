@@ -4,6 +4,7 @@ import com.ai.feign.UserErrorQuestionFeignClient;
 import com.domain.dto.QuestionDto;
 import com.domain.record.agent.UserErrorQuestionRequest;
 import com.domain.restful.RestResponse;
+import com.domain.vo.UserErrorQuestionsVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -31,10 +32,10 @@ public class UserErrorQuestionFunction implements Function<UserErrorQuestionRequ
     @Override
     public String apply(UserErrorQuestionRequest userIdRecord) {
         // 调用 Feign 接口
-        RestResponse<List<QuestionDto>> r = userErrorQuestionFeignClient.getErrorQuestionsByUserId(userIdRecord.userId());
+        RestResponse<List<UserErrorQuestionsVo>> r = userErrorQuestionFeignClient.getErrorQuestionsByUserId(userIdRecord.userId());
 
         // 安全性检查：防止空指针
-        List<QuestionDto> questionDtoList = (r != null && r.getData() != null) ? r.getData() : Collections.emptyList();
+        List<UserErrorQuestionsVo> questionDtoList = (r != null && r.getData() != null) ? r.getData() : Collections.emptyList();
 
         try {
             // 3. 将 List 对象转换为 JSON 字符串

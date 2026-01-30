@@ -1,32 +1,27 @@
-package com.domain.entity;
+package com.domain.dto;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.domain.handler.PostgreSQLVectorTypeHandler;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.Accessors;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 用户与AI的问答对历史记录表
- * 对应表名：chat_message
- */
 @Data
-@Accessors(chain = true)
-@TableName(value = "chat_message", autoResultMap = true)
-public class ChatMessage implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 主键ID
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
-
-    // ================= 用户提问部分 =================
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class ChatMessageComposeDto {
+    //对话id
+    private Long conversationId;
+    //用户id
+    private Long userId;
+    //会话里的消息id
+    private Long messageId;
 
     /**
      * 用户发送的消息原文
@@ -37,14 +32,12 @@ public class ChatMessage implements Serializable {
      * 用户消息的向量值 (768维)
      * 必须指定 TypeHandler 以处理 PGvector 格式
      */
-    @TableField(typeHandler = PostgreSQLVectorTypeHandler.class)
     private List<Double> userEmbedding;
 
     /**
      * 用户发送消息的时间
      * 对应数据库 user_created_at
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime userCreatedTime;
 
     // ================= AI 回复部分 =================
@@ -75,4 +68,6 @@ public class ChatMessage implements Serializable {
      */
     @TableField(exist = false)
     private Double similarity;
+
+
 }

@@ -1,5 +1,6 @@
 package com.ai.controller;//package com.test.multiagentbendiollamaqwen3vl4b.controller;
 import com.ai.service.agent.ChatService;
+import com.ai.service.agent.impl.HybridCacheMemoryChatAgent;
 import com.domain.restful.RestResponse;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AiServiceController {
     private final ChatService chatService;
-
-    public AiServiceController(ChatService chatService) {
+    private final HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent;
+    public AiServiceController(ChatService chatService, HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent) {
         this.chatService = chatService;
+        this.hybridCacheMemoryChatAgent = hybridCacheMemoryChatAgent;
     }
 
     @GetMapping("/memoryChat")
@@ -23,6 +25,17 @@ public class AiServiceController {
             return RestResponse.fail("token中无userId");
         }
         ChatClientResponse chatClientResponse=(ChatClientResponse) chatService.memoryChatFlow(userId,query);
+        return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
+    }
+
+    @GetMapping("/hybridMemoryChatTest")
+    public RestResponse hybridMemoryChatTest(@AuthenticationPrincipal Jwt jwt, @RequestParam("query") String query){
+        Long userId = jwt.getClaim("userId");
+        if (userId == null) {
+            return RestResponse.fail("token中无userId");
+        }
+        ChatClientResponse chatClientResponse=
+                (ChatClientResponse) hybridCacheMemoryChatAgent.execute(query,String.valueOf(userId));
         return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
     }
 

@@ -6,6 +6,7 @@ import org.springframework.ai.model.chat.client.autoconfigure.ChatClientBuilderC
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 /**
  * description
@@ -25,6 +26,7 @@ public class ChatModelConfig {
      * return
      */
     @Bean
+    @Scope("prototype")
     ChatClient.Builder ollamaChatClientBuilder(ChatClientBuilderConfigurer configurer,
                                          @Qualifier("ollamaChatModel") ChatModel ollamaChatModel){
         // 1. 手动创建一个绑定了 Ollama 的 Builder
@@ -44,6 +46,7 @@ public class ChatModelConfig {
      * return
      */
     @Bean
+    @Scope("prototype")
     ChatClient.Builder zhiPuChatClientBuilder(ChatClientBuilderConfigurer configurer,
                                               @Qualifier("zhiPuAiChatModel") ChatModel zhiPuAiChatModel){
         // 1. 手动创建一个绑定了 Ollama 的 Builder
