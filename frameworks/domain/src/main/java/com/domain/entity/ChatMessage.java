@@ -2,7 +2,9 @@ package com.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.domain.handler.PostgreSQLVectorTypeHandler;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -15,8 +17,16 @@ import java.util.List;
  */
 @Data
 @Accessors(chain = true)
+@NoArgsConstructor
 @TableName(value = "chat_message", autoResultMap = true)
 public class ChatMessage implements Serializable {
+
+    public ChatMessage(String userContent, LocalDateTime userCreateTime, String aiContent, LocalDateTime aiCreateTime){
+        this.userContent = userContent;
+        this.userCreatedTime = userCreateTime;
+        this.aiContent = aiContent;
+        this.aiCreatedTime = aiCreateTime;
+    }
 
     private static final long serialVersionUID = 1L;
 

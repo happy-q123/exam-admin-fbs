@@ -2,10 +2,13 @@ package com.ai.service.agent.impl;
 
 import com.ai.advisor.ConversationIdAdvisor;
 import com.ai.advisor.InformationAdvisor;
+import com.ai.advisor.hybrid.HybridConversationIdAdvisor;
 import com.ai.advisor.hybrid.HybridHistorySearchAdvisor;
 import com.ai.service.agent.AbstractAgentService;
 import com.ai.service.agent.ZhiPuRerankService;
+import com.ai.service.common.AiChatComposeService;
 import com.ai.service.common.AiChatMessageService;
+import com.ai.service.common.UserConversationRelationService;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -26,6 +29,9 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
     @Resource
     AiChatMessageService aiChatMessageService;
 
+    @Resource
+    AiChatComposeService aiChatComposeService;
+
     //如果参数名字为ollamaChatClientBuilder，则可以删掉@Qualifier("ollamaChatClientBuilder")的声明
     public HybridCacheMemoryChatAgent(@Qualifier("ollamaChatClientBuilder") ChatClient.Builder ollamaChatClientBuilder) {
         super(ollamaChatClientBuilder);
@@ -37,12 +43,13 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
             advisors=new ArrayList<>();
 
         //会话ID advisor
-        ConversationIdAdvisor conversationIdAdvisor = new ConversationIdAdvisor(0);
+        HybridConversationIdAdvisor conversationIdAdvisor =
+                new HybridConversationIdAdvisor(0,aiChatComposeService);
         advisors.add(conversationIdAdvisor);
 
         //历史搜索advisor
         HybridHistorySearchAdvisor hybridHistorySearchAdvisor = HybridHistorySearchAdvisor
-                .builder(vectorStore,aiChatMessageService)
+                .builder(vectorStore,aiChatComposeService)
                 .defaultTopK(10)
                 .order(2)
 //                .persistAndFilter("conversationId", "messageSource","userId")
@@ -89,6 +96,18 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
                 // 它主要用于给已有的 defaultAdvisors 传递运行时参数！
                 .advisors(a ->
                         a.param("userId", userId)
+                )
+                .call()
+                .chatClientResponse();
+    }
+
+    public Object execute(String query, String userId,String conversationId) {
+        Long conversationIdLong = Long.valueOf(conversationId);
+        return chatClient.prompt(query)
+                // 关键在这里：advisors(...) 不仅仅是添加新 Advisor，
+                // 它主要用于给已有的 defaultAdvisors 传递运行时参数！
+                .advisors(a ->
+                        a.param("userId", userId).param("conversationId", conversationIdLong)
                 )
                 .call()
                 .chatClientResponse();

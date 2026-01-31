@@ -39,6 +39,19 @@ public class AiServiceController {
         return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
     }
 
+    @GetMapping("/hybridMemoryChatAutoSaveMessageTest")
+    public RestResponse hybridMemoryChatAutoSaveMessageTest(@AuthenticationPrincipal Jwt jwt,
+                                                            @RequestParam("query") String query,
+                                                            @RequestParam("conversationId") String conversationId){
+        Long userId = jwt.getClaim("userId");
+        if (userId == null) {
+            return RestResponse.fail("token中无userId");
+        }
+        ChatClientResponse chatClientResponse=
+                (ChatClientResponse) hybridCacheMemoryChatAgent.execute(query,String.valueOf(userId),conversationId);
+        return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
+    }
+
 //    @GetMapping("/search")
 //    public List<Map<String, Object>> search(@RequestParam String query) {
 //

@@ -1,6 +1,7 @@
 package com.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Accessors(chain = true)
+@AllArgsConstructor
 @TableName("ai_conversation")
 public class AiConversation implements Serializable {
 

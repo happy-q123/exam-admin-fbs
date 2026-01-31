@@ -1,6 +1,8 @@
 package com.ai.advisor.hybrid;
 
+import com.ai.service.common.AiChatComposeService;
 import com.ai.service.common.AiChatMessageService;
+import com.domain.dto.ChatMessageComposeDto;
 import com.domain.entity.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientMessageAggregator;
@@ -51,7 +53,7 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
 
     // --- 组件 ---
     private final VectorStore vectorStore;          // L1: Redis
-    private final AiChatMessageService chatMessageService; // L2: DB
+    private final AiChatComposeService aiChatComposeService; // L2: DB
     private final PromptTemplate systemPromptTemplate;
     private final int defaultTopK;
     private final int order;
@@ -60,15 +62,15 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
     // --- 构造器 (使用 Builder 模式) ---
     private HybridHistorySearchAdvisor(Builder builder) {
         this.vectorStore = builder.vectorStore;
-        this.chatMessageService = builder.chatMessageService;
+        this.aiChatComposeService = builder.aiChatComposeService;
         this.systemPromptTemplate = builder.systemPromptTemplate;
         this.defaultTopK = builder.defaultTopK;
         this.order = builder.order;
         this.scheduler = builder.scheduler;
     }
 
-    public static Builder builder(VectorStore vectorStore, AiChatMessageService aiChatMessageService) {
-        return new Builder(vectorStore, aiChatMessageService);
+    public static Builder builder(VectorStore vectorStore, AiChatComposeService aiChatComposeService) {
+        return new Builder(vectorStore, aiChatComposeService);
     }
 
     /**
@@ -204,7 +206,14 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
         if (!hitRedis) {
             try {
                 log.info("🔄 降级查询 DB: {}", query);
-                List<ChatMessage> dbResults = chatMessageService.searchSimilarMessages(query, topK);
+                //从context拿到会话和用户id
+                Long userId= Long.valueOf(String.valueOf(context.getOrDefault("userId", "0")));
+                Long conversationId= Long.valueOf(
+                        String.valueOf(context.getOrDefault("conversationId", "0")));
+
+                List<ChatMessageComposeDto> dbResults =
+                        aiChatComposeService.searchSimilarMessages(userId,conversationId,query, topK);
+
                 if (dbResults != null) {
                     retrievedDocs = dbResults.stream().map(this::convertDbEntityToDocument).toList();
                 }
@@ -240,8 +249,10 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
 
         // 异步/同步写入
         try {
+            Long conversationId=Long.valueOf(
+                    String.valueOf(context.getOrDefault("conversationId", "0")));
             // Write DB
-            chatMessageService.saveChatPair(userText, userSendTime, aiContent, aiResponseTime);
+            aiChatComposeService.createMessage(conversationId,userText, userSendTime, aiContent, aiResponseTime);
 
             // Write Redis
             String combined = "User: " + userText + "\nAssistant: " + aiContent;
@@ -258,7 +269,7 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
         }
     }
 
-    private Document convertDbEntityToDocument(ChatMessage msg) {
+    private Document convertDbEntityToDocument(ChatMessageComposeDto msg) {
         //格式化时间
         String userTimeStr = msg.getUserCreatedTime()!= null
                 ?msg.getUserCreatedTime().format(TIME_FORMATTER)
@@ -281,7 +292,7 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
         );
 
         return Document.builder()
-                .id(msg.getId().toString())
+                .id(msg.getUserId().toString())
                 .text(content) // 注入带时间的文本
                 .metadata(SOURCE_FIELD_KEY, "database_fallback")
                 // 建议：同时也把时间放入 metadata，方便后续如果有高级检索需求（如：过滤最近一周的对话）
@@ -310,17 +321,17 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
     // --- Builder ---
     public static final class Builder {
         private final VectorStore vectorStore;
-        private final AiChatMessageService chatMessageService;
+        private final AiChatComposeService aiChatComposeService;
         private PromptTemplate systemPromptTemplate = HybridHistorySearchAdvisor.DEFAULT_SYSTEM_PROMPT_TEMPLATE;
         private int defaultTopK = 10;
         private Scheduler scheduler = Schedulers.boundedElastic(); // 默认使用弹性线程池
         private int order = 0;
 
-        public Builder(VectorStore vectorStore, AiChatMessageService aiChatMessageService) {
+        public Builder(VectorStore vectorStore,  AiChatComposeService aiChatComposeService) {
+            this.aiChatComposeService = aiChatComposeService;
             Assert.notNull(vectorStore, "VectorStore cannot be null");
-            Assert.notNull(aiChatMessageService, "AiChatMessageService cannot be null");
+            Assert.notNull(aiChatComposeService, "AiChatComposeService cannot be null");
             this.vectorStore = vectorStore;
-            this.chatMessageService = aiChatMessageService;
         }
 
         public Builder systemPromptTemplate(PromptTemplate t) { this.systemPromptTemplate = t; return this; }

@@ -3,6 +3,7 @@ package com.domain.entity.relation;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * 对应表名：user_conversation_relation
  */
 @Data
+@AllArgsConstructor
 @Accessors(chain = true)
 @TableName("user_conversation_relation")
 public class UserConversationRelation implements Serializable {
