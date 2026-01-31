@@ -19,9 +19,9 @@ public class VectorStoreConfig {
     @Value("${redis-stack.password:123456}")
     private String password;
 //    RedisVectorStore
-    //抄官方版的下面
+
     @Bean
-    public RedisVectorStore vectorStore(@Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel, JedisConnectionFactory jedisConnectionFactory) {
+    public RedisVectorStore messageVectorStore(@Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel, JedisConnectionFactory jedisConnectionFactory) {
         // --- 1. 像官方一样构建配置，支持 SSL 和 超时 ---
         redis.clients.jedis.DefaultJedisClientConfig.Builder configBuilder =
                 redis.clients.jedis.DefaultJedisClientConfig.builder();
@@ -53,20 +53,59 @@ public class VectorStoreConfig {
         // 2. 你的自定义 Metadata 逻辑
         List<RedisVectorStore.MetadataField> metadataFields = List.of(
                 RedisVectorStore.MetadataField.tag("conversationId"),
-                RedisVectorStore.MetadataField.tag("messageType"),
                 RedisVectorStore.MetadataField.tag("userId"),
-                //conversation or knowledge
-                //todo
-                // 自建库有这个tag值为knowledge，VectorStoreAdvisor类的tag为conversationId。
-                // 因此这俩不干扰，目前正常运行。
-                // 但是VectorStoreAdvisor类记录历史对话时添加的tag已经写死conversationId。
-                // 而我的愿景是仅使用messageSource进行区分。
+                RedisVectorStore.MetadataField.tag("userCreatedTime")
+        );
+
+        // 3. 构建 Store
+        return RedisVectorStore.builder(jedisPooled, embeddingModel)
+                .indexName("exam-fbs-message")
+                .metadataFields(metadataFields)
+                .initializeSchema(true)
+                .build();
+    }
+
+    //抄官方版的下面
+    @Bean
+    public RedisVectorStore ragVectorStore(@Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel, JedisConnectionFactory jedisConnectionFactory) {
+        // --- 1. 像官方一样构建配置，支持 SSL 和 超时 ---
+        redis.clients.jedis.DefaultJedisClientConfig.Builder configBuilder =
+                redis.clients.jedis.DefaultJedisClientConfig.builder();
+        // 设置 SSL
+        if (jedisConnectionFactory.isUseSsl()) {
+            configBuilder.ssl(true);
+        }
+        // 这里我们要优先使用你自己定义的 password 变量
+        // 因为你的端口改成了 this.redisStackPort，密码也应该配套使用 this.password
+        if (this.password != null && !this.password.isEmpty()) {
+            configBuilder.password(this.password);
+        } else if (jedisConnectionFactory.getPassword() != null) {
+            // 如果自定义密码为空，再尝试兜底使用全局 Redis 密码
+            configBuilder.password(jedisConnectionFactory.getPassword());
+        }
+
+        // 设置超时
+        configBuilder.timeoutMillis(jedisConnectionFactory.getTimeout());
+        // 设置 ClientName
+        configBuilder.clientName(jedisConnectionFactory.getClientName());
+
+        // 创建 JedisPooled (使用 HostAndPort + Config)
+        JedisPooled jedisPooled = new JedisPooled(
+//                new redis.clients.jedis.HostAndPort(jedisConnectionFactory.getHostName(), jedisConnectionFactory.getPort()),
+                new redis.clients.jedis.HostAndPort(jedisConnectionFactory.getHostName(), this.redisStackPort),
+                configBuilder.build()
+        );
+
+        // 2. 你的自定义 Metadata 逻辑
+        List<RedisVectorStore.MetadataField> metadataFields = List.of(
+                RedisVectorStore.MetadataField.tag("createdTime"),
+                RedisVectorStore.MetadataField.tag("ragId"),
                 RedisVectorStore.MetadataField.tag("messageSource")//
         );
 
         // 3. 构建 Store
         return RedisVectorStore.builder(jedisPooled, embeddingModel)
-                .indexName("llc")
+                .indexName("exam-fbs-rag")
                 .metadataFields(metadataFields)
                 .initializeSchema(true)
                 .build();

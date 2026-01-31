@@ -11,22 +11,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AiServiceController {
-    private final ChatService chatService;
+//    private final ChatService chatService;
     private final HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent;
-    public AiServiceController(ChatService chatService, HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent) {
-        this.chatService = chatService;
+//    public AiServiceController(ChatService chatService, HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent) {
+//        this.chatService = chatService;
+//        this.hybridCacheMemoryChatAgent = hybridCacheMemoryChatAgent;
+//    }
+
+    public AiServiceController( HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent) {
         this.hybridCacheMemoryChatAgent = hybridCacheMemoryChatAgent;
     }
 
-    @GetMapping("/memoryChat")
-    public RestResponse testBenDiModel(@AuthenticationPrincipal Jwt jwt, @RequestParam("query") String query){
-        Long userId = jwt.getClaim("userId");
-        if (userId == null) {
-            return RestResponse.fail("token中无userId");
-        }
-        ChatClientResponse chatClientResponse=(ChatClientResponse) chatService.memoryChatFlow(userId,query);
-        return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
-    }
+//    @GetMapping("/memoryChat")
+//    public RestResponse testBenDiModel(@AuthenticationPrincipal Jwt jwt, @RequestParam("query") String query){
+//        Long userId = jwt.getClaim("userId");
+//        if (userId == null) {
+//            return RestResponse.fail("token中无userId");
+//        }
+//        ChatClientResponse chatClientResponse=(ChatClientResponse) chatService.memoryChatFlow(userId,query);
+//        return RestResponse.success(chatClientResponse.chatResponse().getResult().getOutput().getText());
+//    }
 
     @GetMapping("/hybridMemoryChatTest")
     public RestResponse hybridMemoryChatTest(@AuthenticationPrincipal Jwt jwt, @RequestParam("query") String query){

@@ -33,7 +33,7 @@ spring:
     vectorstore:
       redis:
         #        indexName: my-vector-index
-        indexName: exam
+#        indexName: exam
         prefix: "doc:"
         initialize-schema: true
 

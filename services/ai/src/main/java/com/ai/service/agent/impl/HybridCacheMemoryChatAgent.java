@@ -20,8 +20,13 @@ import java.util.ArrayList;
 
 @Service
 public class HybridCacheMemoryChatAgent extends AbstractAgentService {
+    @Qualifier("messageVectorStore")
     @Resource
-    VectorStore vectorStore;
+    VectorStore messageVectorStore;
+
+    @Qualifier("ragVectorStore")
+    @Resource
+    VectorStore ragVectorStore;
 
     @Resource
     ZhiPuRerankService zhiPuRerankService;
@@ -49,7 +54,7 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
 
         //历史搜索advisor
         HybridHistorySearchAdvisor hybridHistorySearchAdvisor = HybridHistorySearchAdvisor
-                .builder(vectorStore,aiChatComposeService)
+                .builder(messageVectorStore,aiChatComposeService)
                 .defaultTopK(10)
                 .order(2)
 //                .persistAndFilter("conversationId", "messageSource","userId")
