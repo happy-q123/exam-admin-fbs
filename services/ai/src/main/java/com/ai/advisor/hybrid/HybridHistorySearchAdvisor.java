@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+/**
+ * description 历史消息搜索，支持redis缓存+数据库查询和搜索
+ * author zzq
+ * date 2026/2/1 17:42
+*/
 
 @Slf4j
 public class HybridHistorySearchAdvisor implements BaseAdvisor {
@@ -138,6 +143,7 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
         // L1: Redis
         boolean hitRedis = false;
         if (!userId.isBlank() && !conversationId.isBlank()) {
+            log.info("Try Redis search");
             try {
                 // 使用 mapper 构建过滤表达式
                 String filter = chatMessageMetaDataUtil.buildFilterExpression(userId, conversationId);
@@ -146,7 +152,8 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
                         .query(query).topK(topK).filterExpression(filter).build();
 
                 retrievedDocs = this.vectorStore.similaritySearch(searchRequest);
-                if (!retrievedDocs.isEmpty()) hitRedis = true;
+                if (!retrievedDocs.isEmpty())
+                    hitRedis = true;
             } catch (Exception e) {
                 log.warn("Redis search failed: {}", e.getMessage());
             }
@@ -154,6 +161,7 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
 
         // L2: DB Fallback
         if (!hitRedis) {
+            log.info("Try DB search");
             try {
                 Long uid = parseLongSafely(userId);
                 Long cid = parseLongSafely(conversationId);
@@ -207,12 +215,23 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
     }
 
     private Long parseLongSafely(String val) {
-        try { return Long.valueOf(val); } catch (NumberFormatException e) { return null; }
+        try {
+            return Long.valueOf(val);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // --- Boilerplate (Order, Scheduler, Builder) ---
-    @Override public int getOrder() { return this.order; }
-    @Override public Scheduler getScheduler() { return this.scheduler; }
+    @Override
+    public int getOrder() {
+        return this.order;
+    }
+
+    @Override
+    public Scheduler getScheduler() {
+        return this.scheduler;
+    }
 
     public static final class Builder {
         private final VectorStore vectorStore;
@@ -229,10 +248,28 @@ public class HybridHistorySearchAdvisor implements BaseAdvisor {
             this.vectorStore = vectorStore;
         }
 
-        public Builder systemPromptTemplate(PromptTemplate t) { this.systemPromptTemplate = t; return this; }
-        public Builder defaultTopK(int k) { this.defaultTopK = k; return this; }
-        public Builder scheduler(Scheduler s) { this.scheduler = s; return this; }
-        public Builder order(int o) { this.order = o; return this; }
-        public HybridHistorySearchAdvisor build() { return new HybridHistorySearchAdvisor(this); }
+        public Builder systemPromptTemplate(PromptTemplate t) {
+            this.systemPromptTemplate = t;
+            return this;
+        }
+
+        public Builder defaultTopK(int k) {
+            this.defaultTopK = k;
+            return this;
+        }
+
+        public Builder scheduler(Scheduler s) {
+            this.scheduler = s;
+            return this;
+        }
+
+        public Builder order(int o) {
+            this.order = o;
+            return this;
+        }
+
+        public HybridHistorySearchAdvisor build() {
+            return new HybridHistorySearchAdvisor(this);
+        }
     }
 }

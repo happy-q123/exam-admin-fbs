@@ -4,6 +4,7 @@ import com.ai.advisor.ConversationIdAdvisor;
 import com.ai.advisor.InformationAdvisor;
 import com.ai.advisor.hybrid.HybridConversationIdAdvisor;
 import com.ai.advisor.hybrid.HybridHistorySearchAdvisor;
+import com.ai.advisor.hybrid.HybridReRankAdvisor;
 import com.ai.service.agent.AbstractAgentService;
 import com.ai.service.agent.ZhiPuRerankService;
 import com.ai.service.common.AiChatComposeService;
@@ -60,6 +61,12 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
 //                .persistAndFilter("conversationId", "messageSource","userId")
                 .build();
         advisors.add(hybridHistorySearchAdvisor);
+
+        //本地知识库搜索，并上下文重新排序advisor
+        HybridReRankAdvisor reRankAdvisor = new HybridReRankAdvisor(zhiPuRerankService, ragVectorStore, 4
+                ,aiChatComposeService);
+        advisors.add(reRankAdvisor);
+
         //信息打印advisor
         InformationAdvisor informationAdvisor = new InformationAdvisor(5);
         advisors.add(informationAdvisor);
@@ -113,6 +120,7 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
                 // 它主要用于给已有的 defaultAdvisors 传递运行时参数！
                 .advisors(a ->
                         a.param("userId", userId).param("conversationId", conversationIdLong)
+                                .param("ragName","西游记")
                 )
                 .call()
                 .chatClientResponse();

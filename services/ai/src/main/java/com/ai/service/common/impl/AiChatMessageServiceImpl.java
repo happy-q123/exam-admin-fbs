@@ -23,31 +23,17 @@ public class AiChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, Cha
     @Resource
     private OllamaEmbeddingModel embeddingModel;
 
-    private String queryToJson(String query){
-        float[] fv= embeddingModel.embed(query);
-        // 将 float 数组转换为 List<Double>
-        List<Double> vector = EmbedOptionsUtil.floatArrayToDoubleList(fv);
-
-        // 将 List<Double> 转换为 JSON 字符串
-        ObjectMapper objectMapper = new ObjectMapper();
-        String vectorStr;
-        try {
-            vectorStr = objectMapper.writeValueAsString(vector);
-        } catch (Exception e) {
-            throw new RuntimeException("向量序列化失败", e);
-        }
-        return vectorStr;
-    }
-
     @Override
     public List<ChatMessage> searchSimilarMessages(String query, int topK) {
-        String vectorStr = this.queryToJson(query);
+        float[] fv= embeddingModel.embed(query);
+        String vectorStr = EmbedOptionsUtil.queryToJson(fv);
         return getBaseMapper().searchByVector(vectorStr, topK);
     }
 
     @Override
     public List<ChatMessageComposeDto> searchSimilarMessages(Long userId, Long conversationId, String query, int limit) {
-        String vectorStr = this.queryToJson(query);
+        float[] fv= embeddingModel.embed(query);
+        String vectorStr = EmbedOptionsUtil.queryToJson(fv);
         getBaseMapper().searchVectorInConversation(userId, conversationId, vectorStr, limit);
         return getBaseMapper().searchVectorInConversation(userId, conversationId, vectorStr, limit);
     }

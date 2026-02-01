@@ -1,23 +1,18 @@
 package com.ai.test;
 
 import com.ai.mapper.LocalRagMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.domain.entity.LocalRag;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
-import org.springframework.ai.zhipuai.ZhiPuAiEmbeddingModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -74,7 +69,7 @@ public class JourneyToWestRagTest {
 
                 // B. 构建实体类
                 LocalRag rag = new LocalRag();
-                rag.setMessageSource("西游记"); // 对应字段 messageSource
+                rag.setRagSource("西游记"); // 对应字段 messageSource
                 rag.setContent(chunkText);      // 对应字段 content
                 rag.setEmbedding(vector);       // 对应字段 embedding
                 rag.setCreatedTime(LocalDateTime.now()); // 注意：使用 createdTime
@@ -144,7 +139,7 @@ public class JourneyToWestRagTest {
                 """,
                     i + 1,
                     String.format("%.4f", rag.getSimilarity()), // 保留4位小数
-                    rag.getMessageSource(),
+                    rag.getRagSource(),
                     rag.getContent()
             );
         }

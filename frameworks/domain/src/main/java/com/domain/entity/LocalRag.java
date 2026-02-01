@@ -30,7 +30,7 @@ public class LocalRag implements Serializable {
      * 知识来源标识
      * 例如："运维手册_v1.pdf", "用户协议.docx"
      */
-    private String messageSource;
+    private String ragSource;
 
     /**
      * 知识片段原文

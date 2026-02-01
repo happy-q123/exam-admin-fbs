@@ -2,8 +2,10 @@ package com.ai.service.common;
 
 import com.domain.dto.ChatMessageComposeDto;
 import com.domain.entity.ChatMessage;
+import com.domain.entity.LocalRag;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,4 +37,10 @@ public interface AiChatComposeService {
      */
     List<ChatMessageComposeDto> searchSimilarMessages(Long userId, Long conversationId, String query, int limit);
 
+    /**
+     * description 包装下而已
+     * author zzq
+     * date 2026/2/1 16:37
+    */
+    List<LocalRag> searchSimilarLocalRag(String query,@Nullable List<String> sources,  @Nullable int limit);
 }
