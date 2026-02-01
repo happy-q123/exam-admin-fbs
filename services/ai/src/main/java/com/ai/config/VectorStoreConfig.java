@@ -51,6 +51,8 @@ public class VectorStoreConfig {
         );
 
         // 2. 你的自定义 Metadata 逻辑
+        // 保存的元数据是可以自己定义的，但是搜索时取出的元数据就要在下面定义。
+        // 即保存时，我可能保存了字段w，但取出时取出的元数据可能没有字段w，如果想要w，需要在下面添加
         List<RedisVectorStore.MetadataField> metadataFields = List.of(
                 RedisVectorStore.MetadataField.tag("conversationId"),
                 RedisVectorStore.MetadataField.tag("userId"),
