@@ -54,6 +54,20 @@ public class OnlineExamServiceImpl implements OnlineExamService {
         if (!isApply)
             throw new RuntimeException("未报名该考试");
 
+        com.domain.entity.Exam exam = examService.getById(examId);
+        if (exam == null) {
+            throw new RuntimeException("考试不存在");
+        }
+        if (Boolean.FALSE.equals(exam.getStatus())) {
+            throw new RuntimeException("考试已停用");
+        }
+        if (exam.getBeginTime() == null || exam.getDurationTime() == null || exam.getDurationTime() <= 0) {
+            throw new RuntimeException("考试时间配置不完整");
+        }
+        if (acquireTime.isBefore(exam.getBeginTime())) {
+            throw new RuntimeException("考试尚未开始");
+        }
+
         boolean isExpire=examService.currentIsByondExamExpireTime(examId, acquireTime);
         if(isExpire)
             throw new RuntimeException("考试已过期");
@@ -83,6 +97,9 @@ public class OnlineExamServiceImpl implements OnlineExamService {
             LocalDateTime examExpireTime=LocalDateTime.parse(examExpireTimeValue);
             // 计算考试持续时间（分钟）
             long durationInMinutes = java.time.Duration.between(acquireTime, examExpireTime).toMinutes();
+            if (durationInMinutes <= 0) {
+                throw new RuntimeException("考试已结束");
+            }
             // 将用户标记为正在考试状态，并设置过期时间为剩余考试时间
             stringRedisTemplate.opsForValue().set(examingKey, examId.toString(), durationInMinutes, TimeUnit.MINUTES);
         }else{
@@ -107,8 +124,13 @@ public class OnlineExamServiceImpl implements OnlineExamService {
 
     @Override
     public void processUserDropOnline(UserOnlineExamOptionsDto dto) {
+        if (dto == null || dto.getUserId() == null || dto.getExamId() == null) {
+            return;
+        }
         dto.setOptionType(UserOnlineExamOptionTypeEnum.Exit);
+        dto.setOptionTime(LocalDateTime.now());
         UserOnlineExamOptions userOnlineExamOption = dto.toEntityForSave();
         userOnlineExamOptionsService.save(userOnlineExamOption);
+        stringRedisTemplate.delete(OnlineExamEnum.Is_Examing.buildKey(String.valueOf(dto.getUserId())));
     }
 }

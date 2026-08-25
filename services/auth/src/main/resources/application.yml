@@ -18,6 +18,11 @@ server:
   port: 7050
   servlet:
     context-path: /auth
+  forward-headers-strategy: framework
+
+app:
+  oauth2:
+    redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:5173/login/callback}
 
 
 mybatis-plus:
@@ -37,4 +42,3 @@ mybatis-plus:
       # 如果你的 PG 表主键是 SERIAL/BIGSERIAL (自增)，用 AUTO
       # 如果你想用 MP 自带的雪花算法 (分布式ID)，用 ASSIGN_ID
       id-type: auto
-

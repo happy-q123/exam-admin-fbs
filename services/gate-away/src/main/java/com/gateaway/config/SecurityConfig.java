@@ -68,8 +68,9 @@ public class SecurityConfig {
                 // 1. 这里的 authorizeExchange 保持不变
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/auth/**").permitAll()
-                        .pathMatchers("/user/common/**","/user/common/register").permitAll()
-                        .pathMatchers("/message/ws","/message/ws-sockjs").permitAll()
+                        // 注册接口公开；认证服务通过服务发现直连用户服务读取登录信息，不能把密码摘要查询接口暴露给浏览器。
+                        .pathMatchers("/user/common/register", "/register", "/getValidateCode").permitAll()
+                        .pathMatchers("/message/ws","/message/ws-sockjs", "/ws/proctor/**").permitAll()
                         .pathMatchers("/error").permitAll()
 
                         //knife4j。一般服务也需要放行这个，这样才能拉取到目前服务的接口文档

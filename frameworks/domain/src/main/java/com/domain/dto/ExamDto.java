@@ -11,6 +11,7 @@ import lombok.*;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 
 /**
@@ -64,6 +65,8 @@ public class ExamDto extends BasePojo {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long creator;
 
+    private BigDecimal passScore;
+
     public Exam toExamForInsert(){
         Assert.notNull(title, "考试标题不能为空");
         Assert.notNull(beginTime, "考试开始时间不能为空");
@@ -77,11 +80,13 @@ public class ExamDto extends BasePojo {
         if(restUserNum==null)
             restUserNum=maxUserNum;
         if (status==null)
-            status=false;
+            status=true;
         if (latestUpdateTime == null)
             latestUpdateTime =LocalDateTime.now();
         if (securitySetting==null)
             securitySetting=new ExamSecuritySetting(false,true,3);
+        if (passScore == null)
+            passScore = BigDecimal.valueOf(60);
 
         return Exam.builder()
                 .id(id)
@@ -96,6 +101,7 @@ public class ExamDto extends BasePojo {
                 .maxUserNum(maxUserNum)
                 .restUserNum(restUserNum)
                 .creator(creator)
+                .passScore(passScore)
                 .build();
     }
 }

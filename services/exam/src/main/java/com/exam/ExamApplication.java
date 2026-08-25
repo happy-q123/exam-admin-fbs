@@ -7,11 +7,16 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableAsync;
+
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableTransactionManagement
 @EnableFeignClients
-class ExamApplication {
+@EnableCaching
+@EnableAsync
+public class ExamApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ExamApplication.class, args);

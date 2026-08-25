@@ -43,5 +43,25 @@
             <artifactId>snow-flake</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
+        <!--        EasyExcel 用于实体类和DTO注解-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+        </dependency>
+
+        <!--        AOP 和 Web 依赖用于 AuditLogAspect 等切面和 Web 组件-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -60,7 +60,8 @@ CREATE TABLE public.exam (
     latest_update_time timestamp(6) without time zone,
     max_user_num integer,
     rest_user_num integer,
-    creator bigint NOT NULL
+    creator bigint NOT NULL,
+    pass_score numeric(5,2) DEFAULT 60.00
 );
 
 
@@ -448,7 +449,7 @@ oauth2-rsa-key	{"p":"18jQuq304GIagIeY68SRca9Nvpb9vQqvQLON97lFV6v_pbKa_iGYYRpsH6I
 --
 
 COPY public.sys_user (id, username, password, nick_name, role, status) FROM stdin;
-111	admin	$2a$10$LgiLAR.YuZTYL0QucSssgeol1/epzF60VIRZUyz1p2G.UjtxTAjBy	admin	admin	f
+111	admin	$2a$10$LgiLAR.YuZTYL0QucSssgeol1/epzF60VIRZUyz1p2G.UjtxTAjBy	admin	admin	t
 \.
 
 

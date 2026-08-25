@@ -41,6 +41,7 @@ public class UserDto extends BasePojo {
                 .password(password)
                 .role(role)
                 .id(user.getId())
+                .status(user.isStatus())
                 .build();
         return userDtoForLogin;
     }
@@ -52,6 +53,7 @@ public class UserDto extends BasePojo {
                 .password(password)
                 .nickName(nickName)
                 .role(role)
+                .status(status)
                 .build();
     }
 }

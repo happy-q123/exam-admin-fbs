@@ -26,6 +26,7 @@
         <rocket-mq.version>2.3.2</rocket-mq.version>
         <spring-ai.version>1.1.0</spring-ai.version>
         <kinfe4j.version>4.5.0</kinfe4j.version>
+        <easyexcel.version>3.3.2</easyexcel.version>
 
     </properties>
 
@@ -116,6 +117,13 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
                 <version>1.10.0</version>
+            </dependency>
+
+            <!--            EasyExcel -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
             </dependency>
 
         </dependencies>

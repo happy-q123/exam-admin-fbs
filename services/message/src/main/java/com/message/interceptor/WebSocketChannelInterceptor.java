@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -14,7 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtValidationException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
@@ -48,49 +49,42 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
             // 获取 Authorization 头 (前端应该传 "Bearer eyJhbGciO...")
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
-            log.info("WebSocket 连接请求，Authorization: {}", authHeader);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new MessageDeliveryException("WebSocket连接缺少Bearer Token");
+            }
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7); // 去掉 "Bearer " 前缀
+            String token = authHeader.substring(7).trim();
+            if (token.isEmpty()) {
+                throw new MessageDeliveryException("WebSocket连接令牌为空");
+            }
 
-                try {
-                    Jwt jwt = jwtDecoder.decode(token);
-                    // 1. 从 JWT Claims 中获取 userId (假设你的 token 里存的是 "userId" 或 "id")
-                    // 注意：根据你的生成逻辑，这里可能是 String 也可能是 Long
-                    String userIdObj = jwt.getClaims().get("userId").toString();
-                    Principal authentication = getPrincipal(userIdObj, jwt, token);
-
-                    // 5. 绑定到 WebSocket Session
-                    accessor.setUser(authentication);
-
-                    log.info("✅ OAuth2 认证成功，用户ID: {}", authentication.getName()); // 现在这里打印的就是 ID 了
-
-                } catch (JwtValidationException e) {
-                    log.error("❌ Token 验证失败: {}", e.getMessage());
-                    // 也可以选择在这里抛出异常，强制断开连接
-                } catch (Exception e) {
-                    log.error("❌ WebSocket 认证过程出错", e);
+            try {
+                Jwt jwt = jwtDecoder.decode(token);
+                String userId = jwt.getClaimAsString("userId");
+                if (userId == null || userId.isBlank()) {
+                    throw new MessageDeliveryException("Token中缺少userId");
                 }
-            } else {
-                log.warn("⚠️ 未携带 Bearer Token");
+                Principal authentication = getPrincipal(userId, jwt);
+                accessor.setUser(authentication);
+                log.info("✅ OAuth2 WebSocket认证成功，用户ID: {}", authentication.getName());
+            } catch (JwtException e) {
+                log.warn("❌ WebSocket Token验证失败: {}", e.getMessage());
+                throw new MessageDeliveryException("WebSocket Token无效: " + e.getMessage());
             }
         }
         return message;
     }
 
-    private UsernamePasswordAuthenticationToken getPrincipal(Object userIdObj, Jwt jwt, String token) {
-        String userIdString = String.valueOf(userIdObj);
+    private UsernamePasswordAuthenticationToken getPrincipal(String userIdString, Jwt jwt) {
 
-        // 建议先给空权限，跑通了再说。或者手动构建 SimpleGrantedAuthority
         List<GrantedAuthority> authorities = Collections.emptyList();
-
-        // 或者如果你想把 sub 当权限（虽然不常见）：
-         if (jwt.getSubject() != null) {
-            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getSubject()));
-         }
+        String role = jwt.getClaimAsString("role");
+        if (role != null && !role.isBlank()) {
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.replaceFirst("^ROLE_", "")));
+        }
 
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userIdString, token, authorities);
+                new UsernamePasswordAuthenticationToken(userIdString, null, authorities);
 
         authentication.setDetails(jwt.getClaims());
         return authentication;

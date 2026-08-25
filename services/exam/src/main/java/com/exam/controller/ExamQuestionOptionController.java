@@ -27,13 +27,19 @@ public class ExamQuestionOptionController {
     public RestResponse<List<UserErrorQuestionsVo>> insertOne(@AuthenticationPrincipal Jwt jwt,
                                                         @PathVariable("userId") String userId) {
         Long jUserId = jwt.getClaim("userId");
-        if(userId==null)
+        if(jUserId==null)
             return RestResponse.fail("token中无userId");
         Long userIdLong=null;
         if(userId.isBlank()){
             userIdLong=jUserId;
         }else
             userIdLong=Long.parseLong(userId);
+        String role = jwt.getClaimAsString("role");
+        if (!jUserId.equals(userIdLong)
+                && !"teacher".equalsIgnoreCase(role)
+                && !"admin".equalsIgnoreCase(role)) {
+            return RestResponse.fail(403, "只能查看自己的错题");
+        }
         List<UserErrorQuestionsVo>l=userOnlineExamAnswerService.getUserAnswersByUserId(userIdLong);
         return RestResponse.success(l);
     }

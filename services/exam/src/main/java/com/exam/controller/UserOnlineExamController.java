@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 /**
  * description 用户在线考试答案操作
@@ -87,7 +88,8 @@ public class UserOnlineExamController {
 
         if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
             throw new RuntimeException("token用户id和请求体中用户id不一致");
-        onlineExamService.enterExam(userId, userOnlineExamAnswerDto.getExamId(), userOnlineExamAnswerDto.getOptionTime());
+        // 进入时间必须由服务端生成，不能信任浏览器提交的时间戳。
+        onlineExamService.enterExam(userId, userOnlineExamAnswerDto.getExamId(), LocalDateTime.now());
         return RestResponse.success("成功");
     }
 

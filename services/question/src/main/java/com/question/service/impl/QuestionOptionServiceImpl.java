@@ -10,6 +10,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionOptionServiceImpl extends ServiceImpl<QuestionMapper, Question>
@@ -33,6 +36,11 @@ public class QuestionOptionServiceImpl extends ServiceImpl<QuestionMapper, Quest
             throw new RuntimeException("idList为空");
         List<Question> questionList = listByIds(idList);
         List<QuestionDto>questionDtoList=QuestionDto.toDtoList(questionList);
-        return questionDtoList;
+        Map<Long, QuestionDto> questionMap = questionDtoList.stream()
+                .collect(Collectors.toMap(QuestionDto::getId, Function.identity(), (first, second) -> first));
+        return idList.stream()
+                .map(questionMap::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 }

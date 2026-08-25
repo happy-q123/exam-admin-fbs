@@ -43,6 +43,94 @@ spring:
           predicates:
             - Path=/ai/**
 
+        # 1. 适配前端的考试报名接口
+        - id: student-apply-rewrite_route
+          uri: lb://exam-service
+          predicates:
+            - Path=/student/applyForExam
+          filters:
+            - RewritePath=/student/applyForExam, /exam/userApplyExam
+
+        # 2. 适配前端获取已报考的个人考试列表接口
+        - id: student-personal-apply-rewrite_route
+          uri: lb://exam-service
+          predicates:
+            - Path=/student/personalApplyExams
+          filters:
+            - RewritePath=/student/personalApplyExams, /exam/getUserAppliedExams
+
+        # 3. 适配前端分页获取所有考试列表的接口
+        - id: student-page-exam-rewrite_route
+          uri: lb://exam-service
+          predicates:
+            - Path=/student/getPageExams
+          filters:
+            - RewritePath=/student/getPageExams, /exam/getPageExams
+
+        # 4. 适配前端考试记录获取与提交接口
+        - id: exam-record-rewrite_route
+          uri: lb://exam-service
+          predicates:
+            - Path=/examRecord/**
+          filters:
+            - RewritePath=/examRecord/(?<segment>.*), /exam/examRecord/${segment}
+
+        # 5. 适配前端错题本获取接口
+        - id: error-book-rewrite_route
+          uri: lb://exam-service
+          predicates:
+            - Path=/errorBook/**
+          filters:
+            - RewritePath=/errorBook/(?<segment>.*), /exam/errorBook/${segment}
+
+        # 6. 适配前端注册接口
+        - id: student-register-rewrite_route
+          uri: lb://user-service
+          predicates:
+            - Path=/register
+          filters:
+            - RewritePath=/register, /user/common/register
+
+        # 7. 适配前端图形验证码接口
+        - id: captcha-rewrite_route
+          uri: lb://auth-service
+          predicates:
+            - Path=/getValidateCode
+          filters:
+            - RewritePath=/getValidateCode, /auth/getValidateCode
+
+        # 8. 适配前端角色管理接口
+        - id: role-rewrite_route
+          uri: lb://user-service
+          predicates:
+            - Path=/role/**
+          filters:
+            - RewritePath=/role/(?<segment>.*), /user/role/${segment}
+
+        # 9. 适配前端权限管理接口
+        - id: permission-rewrite_route
+          uri: lb://user-service
+          predicates:
+            - Path=/permission/**
+          filters:
+            - RewritePath=/permission/(?<segment>.*), /user/permission/${segment}
+
+        # 10. 审计日志
+        - id: audit-log-rewrite_route
+          uri: lb://user-service
+          predicates:
+            - Path=/auditLog/**
+          filters:
+            - RewritePath=/auditLog/(?<segment>.*), /user/auditLog/${segment}
+
+        # 11. 转发监考 WebSocket
+        - id: proctor-websocket_route
+          uri: lb:ws://exam-service
+          predicates:
+            - Path=/ws/proctor/**
+          filters:
+            - RewritePath=/ws/proctor/(?<segment>.*), /exam/ws/proctor/${segment}
+
       globalcors:
         cors-configurations:
           '[/**]':

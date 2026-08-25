@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +37,7 @@ public class ExamQuestionRelationServiceImpl extends ServiceImpl<ExamQuestionRel
         // 用 .page() 只查当前页的数据（比如10条）
         Page<ExamQuestionRelation> dbPage = lambdaQuery()
                 .eq(ExamQuestionRelation::getExamId, dto.getExamId())
+                .orderByAsc(ExamQuestionRelation::getSeq)
                 .page(pageParam);
 
         // 获取当前页的记录列表
@@ -54,11 +56,23 @@ public class ExamQuestionRelationServiceImpl extends ServiceImpl<ExamQuestionRel
 
         // 远程调用 Feign (只查这 10 个题目，性能高)
         RestResponse<List<QuestionDto>> feignResponse = examQuestionRelationFeignClient.getListByIds(questionIdList);
-        List<QuestionDto> questionList = feignResponse != null ? feignResponse.getData() : new ArrayList<>();
+        List<QuestionDto> questionList = feignResponse != null && feignResponse.getData() != null
+                ? feignResponse.getData()
+                : new ArrayList<>();
 
         // 数据组装 (DTO -> VO)
-        List<ExamQuestionRelationDto> relationDtoList = ExamQuestionRelationDto.toDtoList(records);
-        List<ExamQuestionRelationVo> voList = ExamQuestionRelationVo.toVoList(relationDtoList, questionList);
+        Map<Long, QuestionDto> questionMap = questionList.stream()
+                .filter(question -> question != null && question.getId() != null)
+                .collect(Collectors.toMap(QuestionDto::getId, question -> question, (first, second) -> first));
+        List<ExamQuestionRelationVo> voList = records.stream()
+                .map(relation -> {
+                    QuestionDto question = questionMap.get(relation.getQuestionId());
+                    if (question == null) {
+                        throw new IllegalStateException("考试题目不存在：" + relation.getQuestionId());
+                    }
+                    return ExamQuestionRelationVo.toVo(ExamQuestionRelationDto.toDto(relation), question);
+                })
+                .toList();
 
         // 将 List 转为 Page 并返回
         Page<ExamQuestionRelationVo> resultPage = new Page<>();

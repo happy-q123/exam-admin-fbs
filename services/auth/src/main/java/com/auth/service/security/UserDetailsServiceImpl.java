@@ -34,6 +34,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (userResult == null) {
             throw new UsernameNotFoundException("用户不存在");
         }
+        if (!userResult.isStatus()) {
+            throw new UsernameNotFoundException("用户已被禁用");
+        }
         return new CustomSecurityUser(username, userResult.getPassword(),
                 userResult.getId(), userResult.getRole().toString());
     }

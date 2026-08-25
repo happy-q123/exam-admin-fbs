@@ -54,4 +54,7 @@ public class Exam {
 
     // 考试的创建者id
     private Long creator;
+
+    // 及格分数
+    private java.math.BigDecimal passScore;
 }
