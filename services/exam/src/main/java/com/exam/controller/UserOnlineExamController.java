@@ -46,6 +46,10 @@ public class UserOnlineExamController {
         Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
+        if (userOnlineExamOptionsDto == null || userOnlineExamOptionsDto.getUserId() == null
+                || userOnlineExamOptionsDto.getExamId() == null) {
+            return RestResponse.fail("考试行为缺少用户或考试编号");
+        }
 
         if (!Objects.equals(userOnlineExamOptionsDto.getUserId(), userId))
             throw new RuntimeException("token用户id和请求体中用户id不一致");
@@ -63,6 +67,10 @@ public class UserOnlineExamController {
         Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
+        if (userOnlineExamAnswerDto == null || userOnlineExamAnswerDto.getExamId() == null
+                || userOnlineExamAnswerDto.getQuestionId() == null) {
+            return RestResponse.fail("答案缺少考试或题目编号");
+        }
 
         userOnlineExamAnswerDto.setUserId(userId);
         userOnlineExamAnswerDto.setOptionTime(LocalDateTime.now());
@@ -96,6 +104,10 @@ public class UserOnlineExamController {
         Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
+        if (userOnlineExamAnswerDto == null || userOnlineExamAnswerDto.getUserId() == null
+                || userOnlineExamAnswerDto.getExamId() == null) {
+            return RestResponse.fail("进入考试缺少用户或考试编号");
+        }
 
         if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
             throw new RuntimeException("token用户id和请求体中用户id不一致");
@@ -110,6 +122,10 @@ public class UserOnlineExamController {
         Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
+        if (userOnlineExamAnswerDto == null || userOnlineExamAnswerDto.getUserId() == null
+                || userOnlineExamAnswerDto.getExamId() == null) {
+            return RestResponse.fail("退出考试缺少用户或考试编号");
+        }
 
         if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
             throw new RuntimeException("token用户id和请求体中用户id不一致");

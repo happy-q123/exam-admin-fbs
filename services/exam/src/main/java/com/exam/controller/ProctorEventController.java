@@ -48,7 +48,18 @@ public class ProctorEventController {
     }
 
     private boolean isAdmin(Jwt jwt) {
+        if (jwt == null) return false;
         String role = jwt == null ? "" : jwt.getClaimAsString("role");
-        return "admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role);
+        if ("admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role)) return true;
+        Object roles = jwt.getClaim("roles");
+        if (roles instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> "admin".equalsIgnoreCase(item.replaceFirst("^ROLE_", "")))) {
+            return true;
+        }
+        Object authorities = jwt.getClaim("authorities");
+        return authorities instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> "admin".equalsIgnoreCase(item.replaceFirst("^ROLE_", "")));
     }
 }

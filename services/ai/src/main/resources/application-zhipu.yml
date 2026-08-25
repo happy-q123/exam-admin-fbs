@@ -1,0 +1,4 @@
+spring:
+  ai:
+    zhipuai:
+      api-key: ${ZHIPUAI_API_KEY:?ZHIPUAI_API_KEY is required when the zhipu profile is enabled}

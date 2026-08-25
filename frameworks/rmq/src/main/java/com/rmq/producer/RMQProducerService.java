@@ -67,7 +67,17 @@ public class RMQProducerService {
      * author zzq
      * date 2026/1/9 18:08
      */
+    /**
+     * 兼容旧调用方：未指定单位时按毫秒处理。
+     */
+    public void sendTimerMessage(String topic, String msgContent, long milliseconds) {
+        sendTimerMessage(topic, msgContent, milliseconds, DelayMode.DELAY_MILLISECONDS);
+    }
+
     public void sendTimerMessage(String topic, String msgContent, long timeSize, DelayMode timeUnit) {
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("延时消息单位不能为空");
+        }
         // 记录当前时间用于计算相对时间的目标点
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime targetTime = null;
@@ -96,8 +106,8 @@ public class RMQProducerService {
             targetTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeSize), ZoneId.systemDefault());
         }
 
-        if (!SendStatus.SEND_OK.equals(result.getSendStatus())) {
-            log.error("消息发送失败，状态: {}", result.getSendStatus());
+        if (result == null || !SendStatus.SEND_OK.equals(result.getSendStatus())) {
+            log.error("消息发送失败，状态: {}", result == null ? "UNSUPPORTED_DELAY_MODE" : result.getSendStatus());
         } else {
             log.info("定时消息已发送 | 模式: {} | 数值: {} | 预计投递时间: {}", timeUnit, timeSize, targetTime);
 

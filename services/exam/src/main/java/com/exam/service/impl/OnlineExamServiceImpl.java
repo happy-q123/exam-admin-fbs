@@ -96,12 +96,12 @@ public class OnlineExamServiceImpl implements OnlineExamService {
 
             LocalDateTime examExpireTime=LocalDateTime.parse(examExpireTimeValue);
             // 计算考试持续时间（分钟）
-            long durationInMinutes = java.time.Duration.between(acquireTime, examExpireTime).toMinutes();
-            if (durationInMinutes <= 0) {
+            long remainingSeconds = java.time.Duration.between(acquireTime, examExpireTime).getSeconds();
+            if (remainingSeconds <= 0) {
                 throw new RuntimeException("考试已结束");
             }
             // 将用户标记为正在考试状态，并设置过期时间为剩余考试时间
-            stringRedisTemplate.opsForValue().set(examingKey, examId.toString(), durationInMinutes, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(examingKey, examId.toString(), remainingSeconds, TimeUnit.SECONDS);
         }else{
             Long examingId=Long.parseLong(value);
             if(!examingId.equals(examId)){
@@ -111,6 +111,16 @@ public class OnlineExamServiceImpl implements OnlineExamService {
         userOnlineExamOptionsService.save(userOnlineExamOptions);
 
 
+    }
+
+    @Override
+    public boolean isExamSessionActive(Long userId, Long examId) {
+        if (userId == null || examId == null) {
+            return false;
+        }
+        String activeExamId = stringRedisTemplate.opsForValue()
+                .get(OnlineExamEnum.Is_Examing.buildKey(String.valueOf(userId)));
+        return examId.toString().equals(activeExamId);
     }
 
     @Override
@@ -131,6 +141,10 @@ public class OnlineExamServiceImpl implements OnlineExamService {
         dto.setOptionTime(LocalDateTime.now());
         UserOnlineExamOptions userOnlineExamOption = dto.toEntityForSave();
         userOnlineExamOptionsService.save(userOnlineExamOption);
-        stringRedisTemplate.delete(OnlineExamEnum.Is_Examing.buildKey(String.valueOf(dto.getUserId())));
+        String examingKey = OnlineExamEnum.Is_Examing.buildKey(String.valueOf(dto.getUserId()));
+        String currentExamId = stringRedisTemplate.opsForValue().get(examingKey);
+        if (dto.getExamId().toString().equals(currentExamId)) {
+            stringRedisTemplate.delete(examingKey);
+        }
     }
 }

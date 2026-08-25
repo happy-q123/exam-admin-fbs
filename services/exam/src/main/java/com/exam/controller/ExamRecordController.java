@@ -148,12 +148,43 @@ public class ExamRecordController {
 
     @GetMapping("/analysis")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
-    public RestResponse<Map<String, Object>> analysis(@RequestParam(required = false) Long examId) {
-        var query = examRecordService.lambdaQuery().eq(ExamRecord::getStatus, 2);
+    public RestResponse<Map<String, Object>> analysis(@AuthenticationPrincipal Jwt jwt,
+                                                      @RequestParam(required = false) Long examId) {
+        Long userId = currentUserId(jwt);
+        if (userId == null) {
+            return RestResponse.fail("token中无userId");
+        }
+        boolean admin = isAdmin(jwt);
+        List<com.domain.entity.Exam> managedExams;
         if (examId != null) {
-            query.eq(ExamRecord::getExamId, examId);
+            com.domain.entity.Exam exam = examService.getById(examId);
+            if (exam == null) {
+                return RestResponse.fail("考试不存在");
+            }
+            if (!admin && !userId.equals(exam.getCreator())) {
+                return RestResponse.fail(403, "无权查看该考试的成绩分析");
+            }
+            managedExams = List.of(exam);
+        } else {
+            managedExams = examService.lambdaQuery()
+                    .select(com.domain.entity.Exam::getId, com.domain.entity.Exam::getPassScore)
+                    .eq(!admin, com.domain.entity.Exam::getCreator, userId)
+                    .list();
+        }
+
+        java.util.Set<Long> managedExamIds = managedExams.stream()
+                .map(com.domain.entity.Exam::getId)
+                .collect(Collectors.toSet());
+        var query = examRecordService.lambdaQuery().eq(ExamRecord::getStatus, 2);
+        if (managedExamIds.isEmpty()) {
+            query.eq(ExamRecord::getExamId, -1L);
+        } else {
+            query.in(ExamRecord::getExamId, managedExamIds);
         }
         List<ExamRecord> records = query.list();
+        Map<Long, BigDecimal> passScores = managedExams.stream()
+                .collect(Collectors.toMap(com.domain.entity.Exam::getId,
+                        exam -> exam.getPassScore() == null ? BigDecimal.valueOf(60) : exam.getPassScore()));
         List<BigDecimal> scores = records.stream()
                 .map(ExamRecord::getTotalScore)
                 .filter(scoreValue -> scoreValue != null)
@@ -164,15 +195,11 @@ public class ExamRecordController {
                 : total.divide(BigDecimal.valueOf(scores.size()), 2, RoundingMode.HALF_UP);
         BigDecimal highest = scores.stream().max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
         BigDecimal lowest = scores.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
-        BigDecimal passScore = BigDecimal.valueOf(60);
-        if (examId != null) {
-            com.domain.entity.Exam exam = examService.getById(examId);
-            if (exam != null && exam.getPassScore() != null) {
-                passScore = exam.getPassScore();
-            }
-        }
-        BigDecimal analysisPassScore = passScore;
-        long passed = scores.stream().filter(scoreValue -> scoreValue.compareTo(analysisPassScore) >= 0).count();
+        long passed = records.stream()
+                .filter(record -> record.getTotalScore() != null)
+                .filter(record -> record.getTotalScore()
+                        .compareTo(passScores.getOrDefault(record.getExamId(), BigDecimal.valueOf(60))) >= 0)
+                .count();
         Map<String, Long> distribution = new LinkedHashMap<>();
         distribution.put("0-59", scores.stream().filter(scoreValue -> scoreValue.compareTo(BigDecimal.valueOf(60)) < 0).count());
         distribution.put("60-69", scores.stream().filter(scoreValue -> inRange(scoreValue, 60, 70)).count());
@@ -187,6 +214,7 @@ public class ExamRecordController {
         result.put("lowestScore", lowest);
         result.put("distribution", distribution);
         result.put("total", scores.size());
+        result.put("examCount", managedExamIds.size());
         return RestResponse.success(result);
     }
 
@@ -218,6 +246,10 @@ public class ExamRecordController {
             return true;
         }
         String role = jwt.getClaimAsString("role");
-        return "admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role);
+        if ("admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role)) return true;
+        Object authorities = jwt.getClaim("authorities");
+        return authorities instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> "admin".equalsIgnoreCase(item.replaceFirst("^ROLE_", "")));
     }
 }

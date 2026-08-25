@@ -37,23 +37,4 @@ public class ChatModelConfig {
         return configurer.configure(builder);
     }
 
-
-    /**
-     * description zhiPuChatClient
-     * author zzq
-     * date 2025/12/15 15:10
-     * param
-     * return
-     */
-    @Bean
-    @Scope("prototype")
-    ChatClient.Builder zhiPuChatClientBuilder(ChatClientBuilderConfigurer configurer,
-                                              @Qualifier("zhiPuAiChatModel") ChatModel zhiPuAiChatModel){
-        // 1. 手动创建一个绑定了 Ollama 的 Builder
-        ChatClient.Builder builder = ChatClient.builder(zhiPuAiChatModel);
-        // 2. 让 Configurer 把其他的默认设置（如 Observation 等）应用上去
-        // 这样既解决了冲突，又保留了 Spring AI 的其他自动配置特性
-        return configurer.configure(builder);
-    }
-
 }

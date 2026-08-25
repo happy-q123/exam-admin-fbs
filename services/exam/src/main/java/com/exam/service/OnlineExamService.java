@@ -15,6 +15,12 @@ public interface OnlineExamService {
      */
     void enterExam(Long userId, Long examId, LocalDateTime acquireTime);
 
+    /**
+     * 判断用户是否仍处于指定考试的服务端会话中。
+     * 取题、保存答案等写操作必须复用这个状态，不能只相信前端路由。
+     */
+    boolean isExamSessionActive(Long userId, Long examId);
+
 
     /**
      * description 检查用户进入考试的次数是否已达最大值

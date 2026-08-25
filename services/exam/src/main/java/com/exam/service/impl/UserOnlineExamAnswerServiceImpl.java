@@ -3,14 +3,18 @@ package com.exam.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domain.dto.QuestionDto;
 import com.domain.dto.UserOnlineExamAnswerDto;
+import com.domain.entity.Exam;
 import com.domain.entity.relation.UserOnlineExamAnswer;
 import com.domain.enums.redis.UserOnlineKeyEnum;
 import com.domain.restful.RestResponse;
 import com.domain.vo.UserErrorQuestionsVo;
 import com.exam.feign.ExamQuestionRelationFeignClient;
 import com.exam.mapper.UserOnlineExamAnswerMapper;
-import com.exam.service.UserOnlineExamAnswerService;
 import com.exam.service.ExamQuestionRelationService;
+import com.exam.service.ExamService;
+import com.exam.service.OnlineExamService;
+import com.exam.service.UserApplyExamRelationService;
+import com.exam.service.UserOnlineExamAnswerService;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,12 +31,21 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
     //todo 远程调用问题
     private final ExamQuestionRelationFeignClient examQuestionRelationFeignClient;
     private final ExamQuestionRelationService examQuestionRelationService;
+    private final ExamService examService;
+    private final UserApplyExamRelationService userApplyExamRelationService;
+    private final OnlineExamService onlineExamService;
     private final String USER_ONLINE_KEY = UserOnlineKeyEnum.ONLINE_USERS.buildKey();
 
     public UserOnlineExamAnswerServiceImpl(ExamQuestionRelationFeignClient examQuestionRelationFeignClient,
-                                           ExamQuestionRelationService examQuestionRelationService) {
+                                           ExamQuestionRelationService examQuestionRelationService,
+                                           ExamService examService,
+                                           UserApplyExamRelationService userApplyExamRelationService,
+                                           OnlineExamService onlineExamService) {
         this.examQuestionRelationFeignClient = examQuestionRelationFeignClient;
         this.examQuestionRelationService = examQuestionRelationService;
+        this.examService = examService;
+        this.userApplyExamRelationService = userApplyExamRelationService;
+        this.onlineExamService = onlineExamService;
     }
 
     //判断用户是否在线
@@ -46,6 +59,7 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
                 || userOnlineExamAnswerDto.getExamId() == null || userOnlineExamAnswerDto.getQuestionId() == null) {
             throw new IllegalArgumentException("答案缺少用户、考试或题目编号");
         }
+        assertActiveExamSession(userOnlineExamAnswerDto.getUserId(), userOnlineExamAnswerDto.getExamId());
         if (!examQuestionRelationService.lambdaQuery()
                 .eq(com.domain.entity.relation.ExamQuestionRelation::getExamId, userOnlineExamAnswerDto.getExamId())
                 .eq(com.domain.entity.relation.ExamQuestionRelation::getQuestionId, userOnlineExamAnswerDto.getQuestionId())
@@ -66,8 +80,44 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
         }
     }
 
+    private void assertActiveExamSession(Long userId, Long examId) {
+        Exam exam = examService.getById(examId);
+        if (exam == null) {
+            throw new IllegalArgumentException("考试不存在");
+        }
+        if (Boolean.FALSE.equals(exam.getStatus())) {
+            throw new IllegalArgumentException("考试已停用");
+        }
+        if (!userApplyExamRelationService.checkExamApplyExist(userId, examId)) {
+            throw new IllegalArgumentException("未报名该考试");
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (exam.getBeginTime() == null || exam.getDurationTime() == null
+                || now.isBefore(exam.getBeginTime())
+                || now.isAfter(exam.getBeginTime().plusMinutes(exam.getDurationTime()).plusSeconds(30))) {
+            throw new IllegalArgumentException("当前不在考试答题时间内");
+        }
+        if (!onlineExamService.isExamSessionActive(userId, examId)) {
+            throw new IllegalStateException("考试会话已失效，请重新进入考试");
+        }
+        if (!isUserOnline(String.valueOf(userId))) {
+            throw new IllegalStateException("用户不在线");
+        }
+    }
+
     @Override
     public void updateAnswer(UserOnlineExamAnswerDto userOnlineExamAnswerDto) {
+        if (userOnlineExamAnswerDto == null || userOnlineExamAnswerDto.getUserId() == null
+                || userOnlineExamAnswerDto.getExamId() == null || userOnlineExamAnswerDto.getQuestionId() == null) {
+            throw new IllegalArgumentException("答案缺少用户、考试或题目编号");
+        }
+        assertActiveExamSession(userOnlineExamAnswerDto.getUserId(), userOnlineExamAnswerDto.getExamId());
+        if (!examQuestionRelationService.lambdaQuery()
+                .eq(com.domain.entity.relation.ExamQuestionRelation::getExamId, userOnlineExamAnswerDto.getExamId())
+                .eq(com.domain.entity.relation.ExamQuestionRelation::getQuestionId, userOnlineExamAnswerDto.getQuestionId())
+                .exists()) {
+            throw new IllegalArgumentException("题目不属于当前考试");
+        }
         UserOnlineExamAnswer userOnlineExamAnswer = userOnlineExamAnswerDto.toEntityForSave();
         String userId = String.valueOf(userOnlineExamAnswer.getUserId());
         if(!isUserOnline(userId)){

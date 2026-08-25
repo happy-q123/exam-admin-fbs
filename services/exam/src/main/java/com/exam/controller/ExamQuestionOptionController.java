@@ -4,7 +4,9 @@ import com.domain.restful.RestResponse;
 import com.domain.entity.ErrorBook;
 import com.domain.vo.UserErrorQuestionsVo;
 import com.exam.service.ErrorBookService;
+import com.exam.service.ExamService;
 import com.exam.service.UserOnlineExamAnswerService;
+import com.domain.entity.Exam;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +19,14 @@ import java.util.stream.Collectors;
 public class ExamQuestionOptionController {
     private final UserOnlineExamAnswerService userOnlineExamAnswerService;
     private final ErrorBookService errorBookService;
+    private final ExamService examService;
 
     public ExamQuestionOptionController(UserOnlineExamAnswerService userOnlineExamAnswerService,
-                                        ErrorBookService errorBookService) {
+                                        ErrorBookService errorBookService,
+                                        ExamService examService) {
         this.userOnlineExamAnswerService = userOnlineExamAnswerService;
         this.errorBookService = errorBookService;
+        this.examService = examService;
     }
 
     /**
@@ -41,15 +46,23 @@ public class ExamQuestionOptionController {
             userIdLong=jUserId;
         }else
             userIdLong=Long.parseLong(userId);
-        String role = jwt.getClaimAsString("role");
-        if (!jUserId.equals(userIdLong)
-                && !"teacher".equalsIgnoreCase(role)
-                && !"admin".equalsIgnoreCase(role)) {
+        boolean admin = hasRole(jwt, "admin");
+        boolean teacher = hasRole(jwt, "teacher");
+        if (!jUserId.equals(userIdLong) && !teacher && !admin) {
             return RestResponse.fail(403, "只能查看自己的错题");
         }
-        Set<String> errorKeys = errorBookService.lambdaQuery()
-                .eq(ErrorBook::getUserId, userIdLong)
-                .list().stream()
+        var errorBookQuery = errorBookService.lambdaQuery().eq(ErrorBook::getUserId, userIdLong);
+        if (!jUserId.equals(userIdLong) && teacher && !admin) {
+            Set<Long> managedExamIds = examService.lambdaQuery()
+                    .select(Exam::getId)
+                    .eq(Exam::getCreator, jUserId)
+                    .list().stream()
+                    .map(Exam::getId)
+                    .collect(Collectors.toSet());
+            if (managedExamIds.isEmpty()) return RestResponse.success(List.of());
+            errorBookQuery.in(ErrorBook::getExamId, managedExamIds);
+        }
+        Set<String> errorKeys = errorBookQuery.list().stream()
                 .map(item -> item.getExamId() + ":" + item.getQuestionId())
                 .collect(Collectors.toSet());
         List<UserErrorQuestionsVo> l = userOnlineExamAnswerService.getUserAnswersByUserId(userIdLong)
@@ -63,5 +76,21 @@ public class ExamQuestionOptionController {
         if (jwt == null || jwt.getClaim("userId") == null) return null;
         Object value = jwt.getClaim("userId");
         return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
+    }
+
+    private boolean hasRole(Jwt jwt, String expected) {
+        if (jwt == null) return false;
+        String role = jwt.getClaimAsString("role");
+        if (expected.equalsIgnoreCase(role) || ("ROLE_" + expected).equalsIgnoreCase(role)) return true;
+        Object roles = jwt.getClaim("roles");
+        if (roles instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> expected.equalsIgnoreCase(item.replaceFirst("^ROLE_", "")))) {
+            return true;
+        }
+        Object authorities = jwt.getClaim("authorities");
+        return authorities instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> expected.equalsIgnoreCase(item.replaceFirst("^ROLE_", "")));
     }
 }

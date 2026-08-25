@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -68,17 +69,34 @@ public class ExamDto extends BasePojo {
     private BigDecimal passScore;
 
     public Exam toExamForInsert(){
-        Assert.notNull(title, "考试标题不能为空");
+        Assert.isTrue(StringUtils.hasText(title), "考试标题不能为空");
         Assert.notNull(beginTime, "考试开始时间不能为空");
         Assert.notNull(durationTime, "考试持续时间不能为空");
         Assert.notNull(maxUserNum, "考试最大人数不能为空");
         Assert.notNull(creator, "考试创建者不能为空");
-        Assert.notNull(introduce, "考试介绍不能为空");
+        Assert.isTrue(StringUtils.hasText(introduce), "考试介绍不能为空");
+        Assert.isTrue(title.trim().length() <= 255, "考试标题不能超过255个字符");
+        Assert.isTrue(introduce.trim().length() <= 2000, "考试介绍不能超过2000个字符");
+        Assert.isTrue(durationTime > 0 && durationTime <= 1440, "考试持续时间必须在1到1440分钟之间");
+        Assert.isTrue(maxUserNum > 0 && maxUserNum <= 1_000_000, "考试最大人数必须在1到1000000之间");
+        if (passScore != null) {
+            Assert.isTrue(passScore.signum() >= 0 && passScore.compareTo(java.math.BigDecimal.valueOf(100_000)) <= 0,
+                    "及格分数不合法");
+        }
+        if (securitySetting != null && securitySetting.getMaxReconnectCount() != null) {
+            Assert.isTrue(securitySetting.getMaxReconnectCount() >= -1
+                            && securitySetting.getMaxReconnectCount() <= 100,
+                    "最大重连次数必须在-1到100之间");
+        }
+
+        title = title.trim();
+        introduce = introduce.trim();
 
         if (createTime==null)
             createTime=LocalDateTime.now();
-        if(restUserNum==null)
+        if (id == null || restUserNum == null)
             restUserNum=maxUserNum;
+        Assert.isTrue(restUserNum >= 0 && restUserNum <= maxUserNum, "剩余人数配置不合法");
         if (status==null)
             status=true;
         if (latestUpdateTime == null)

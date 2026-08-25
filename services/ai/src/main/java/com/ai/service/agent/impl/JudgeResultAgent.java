@@ -15,7 +15,11 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class JudgeResultAgent extends AbstractAgentService {
-    public JudgeResultAgent(@Qualifier("zhiPuChatClientBuilder") ChatClient.Builder chatClientBuilder) {
+    /**
+     * 质量评估不应把智谱密钥变成 AI 服务的启动硬依赖；本地模型不可用时，
+     * 上层工作流仍会走基础规则评估和最终兜底。
+     */
+    public JudgeResultAgent(@Qualifier("ollamaChatClientBuilder") ChatClient.Builder chatClientBuilder) {
         super(chatClientBuilder);
     }
 

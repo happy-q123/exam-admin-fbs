@@ -10,8 +10,10 @@ import com.domain.entity.UserAnswer;
 import com.domain.entity.attribute.QuestionBody;
 import com.domain.entity.relation.ExamQuestionRelation;
 import com.domain.entity.relation.UserOnlineExamAnswer;
+import com.domain.entity.relation.UserOnlineExamOptions;
 import com.domain.entity.attribute.UserOnlineExamQuestionAnswerBody;
 import com.domain.enums.QuestionTypeEnum;
+import com.domain.enums.UserOnlineExamOptionTypeEnum;
 import com.exam.mapper.ExamRecordMapper;
 import com.exam.service.ErrorBookService;
 import com.exam.service.ExamQuestionRelationService;
@@ -20,6 +22,7 @@ import com.exam.service.ExamService;
 import com.exam.service.UserAnswerService;
 import com.exam.service.UserApplyExamRelationService;
 import com.exam.service.UserOnlineExamAnswerService;
+import com.exam.service.UserOnlineExamOptionsService;
 import com.exam.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +55,9 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
 
     @Autowired
     private UserOnlineExamAnswerService userOnlineExamAnswerService;
+
+    @Autowired
+    private UserOnlineExamOptionsService userOnlineExamOptionsService;
 
     @Autowired
     private ErrorBookService errorBookService;
@@ -102,6 +108,16 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         if (!userApplyExamRelationService.checkExamApplyExist(userId, examId)) {
             throw new IllegalArgumentException("未报名该考试");
         }
+        UserOnlineExamOptions firstEnterOption = userOnlineExamOptionsService.lambdaQuery()
+                .eq(UserOnlineExamOptions::getUserId, userId)
+                .eq(UserOnlineExamOptions::getExamId, examId)
+                .eq(UserOnlineExamOptions::getOptionType, UserOnlineExamOptionTypeEnum.Enter)
+                .orderByAsc(UserOnlineExamOptions::getOptionTime)
+                .last("LIMIT 1")
+                .one();
+        if (firstEnterOption == null) {
+            throw new IllegalStateException("请先完成考试准备后再交卷");
+        }
         if (lambdaQuery().eq(ExamRecord::getUserId, userId)
                 .eq(ExamRecord::getExamId, examId)
                 .exists()) {
@@ -150,7 +166,7 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         ExamRecord record = new ExamRecord();
         record.setUserId(userId);
         record.setExamId(examId);
-        record.setStartTime(now);
+        record.setStartTime(firstEnterOption.getOptionTime() == null ? now : firstEnterOption.getOptionTime());
         record.setEndTime(now);
         record.setCreateTime(now);
         record.setUpdateTime(now);

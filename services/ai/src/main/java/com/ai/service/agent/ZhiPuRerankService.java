@@ -20,7 +20,7 @@ public class ZhiPuRerankService {
     private static final String RERANK_URL = "https://open.bigmodel.cn/api/paas/v4/rerank";
 
     // 修改点：传入 builder，这样测试时可以塞入 Mock 对象
-    public ZhiPuRerankService(RestClient.Builder builder, @Value("${spring.ai.zhipuai.api-key}") String apiKey) {
+    public ZhiPuRerankService(RestClient.Builder builder, @Value("${spring.ai.zhipuai.api-key:}") String apiKey) {
         this.restClient = builder
                 .baseUrl(RERANK_URL)
                 .defaultHeader("Authorization", "Bearer " + apiKey)

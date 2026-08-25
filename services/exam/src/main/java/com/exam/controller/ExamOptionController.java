@@ -10,6 +10,7 @@ import com.domain.entity.attribute.QuestionBody;
 import com.domain.vo.ExamQuestionRelationVo;
 import com.exam.service.ExamService;
 import com.exam.service.ExamQuestionRelationService;
+import com.exam.service.OnlineExamService;
 import com.exam.service.UserApplyExamRelationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,24 +18,31 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @RestController
 public class ExamOptionController {
     private final ExamService examService;
     private final ExamQuestionRelationService examQuestionRelationService;
+    private final OnlineExamService onlineExamService;
     private final UserApplyExamRelationService userApplyExamRelationService;
 
     public ExamOptionController(ExamService examService,
                                 ExamQuestionRelationService examQuestionRelationService,
+                                OnlineExamService onlineExamService,
                                 UserApplyExamRelationService userApplyExamRelationService) {
         this.examService = examService;
         this.examQuestionRelationService = examQuestionRelationService;
+        this.onlineExamService = onlineExamService;
         this.userApplyExamRelationService = userApplyExamRelationService;
     }
 
     @PostMapping("/addExam")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<String> addExam(@AuthenticationPrincipal Jwt jwt, @RequestBody ExamDto dto){
+        if (dto == null) {
+            return RestResponse.fail("考试配置不能为空");
+        }
         Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
@@ -83,7 +91,7 @@ public class ExamOptionController {
             return RestResponse.fail("考试已停用");
         }
         String role = jwt.getClaimAsString("role");
-        boolean privileged = "teacher".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role);
+        boolean privileged = hasRole(jwt, "teacher") || hasRole(jwt, "admin");
         if (!privileged) {
             Long userId = currentUserId(jwt);
             if (!userApplyExamRelationService.checkExamApplyExist(userId, dto.getExamId())) {
@@ -96,6 +104,9 @@ public class ExamOptionController {
             LocalDateTime endTime = exam.getBeginTime().plusMinutes(exam.getDurationTime());
             if (now.isBefore(exam.getBeginTime()) || now.isAfter(endTime)) {
                 return RestResponse.fail("当前不在考试时间内");
+            }
+            if (!onlineExamService.isExamSessionActive(userId, dto.getExamId())) {
+                return RestResponse.fail(403, "请先完成考试准备并进入考试");
             }
         }
         Page<ExamQuestionRelationVo> page=examQuestionRelationService.getExamQuestionsByExamId(dto);
@@ -116,6 +127,16 @@ public class ExamOptionController {
         Page<Exam> examPage = examService.page(new Page<>(safePageNum, safePageSize),
                 new LambdaQueryWrapper<Exam>().eq(Exam::getStatus, true).orderByDesc(Exam::getBeginTime));
         Page<java.util.Map<String, Object>> resultPage = new Page<>(examPage.getCurrent(), examPage.getSize(), examPage.getTotal());
+        java.util.List<Long> examIds = examPage.getRecords().stream().map(Exam::getId).toList();
+        java.util.Map<Long, BigDecimal> totalScoreMap = examIds.isEmpty() ? java.util.Map.of()
+                : examQuestionRelationService.lambdaQuery()
+                .in(com.domain.entity.relation.ExamQuestionRelation::getExamId, examIds)
+                .list().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        com.domain.entity.relation.ExamQuestionRelation::getExamId,
+                        java.util.stream.Collectors.mapping(
+                                item -> item.getScore() == null ? BigDecimal.ZERO : item.getScore(),
+                                java.util.stream.Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
 
         java.util.List<java.util.Map<String, Object>> records = examPage.getRecords().stream().map(exam -> {
             java.util.Map<String, Object> map = new java.util.HashMap<>();
@@ -134,6 +155,7 @@ public class ExamOptionController {
             map.put("maxUser", exam.getMaxUserNum());
             map.put("remainingUser", exam.getRestUserNum());
             map.put("passScore", exam.getPassScore());
+            map.put("totalScore", totalScoreMap.getOrDefault(exam.getId(), BigDecimal.ZERO));
             map.put("status", exam.getStatus());
 
             if (exam.getSecuritySetting() != null) {
@@ -168,5 +190,21 @@ public class ExamOptionController {
         if (jwt == null || jwt.getClaim("userId") == null) return null;
         Object value = jwt.getClaim("userId");
         return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
+    }
+
+    private boolean hasRole(Jwt jwt, String expected) {
+        if (jwt == null) return false;
+        String role = jwt.getClaimAsString("role");
+        if (expected.equalsIgnoreCase(role) || ("ROLE_" + expected).equalsIgnoreCase(role)) return true;
+        Object roles = jwt.getClaim("roles");
+        if (roles instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> expected.equalsIgnoreCase(item.replaceFirst("^ROLE_", "")))) {
+            return true;
+        }
+        Object authorities = jwt.getClaim("authorities");
+        return authorities instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> expected.equalsIgnoreCase(item.replaceFirst("^ROLE_", "")));
     }
 }

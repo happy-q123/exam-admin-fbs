@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,6 +57,9 @@ public class ExamManagementController {
     @Audit("创建考试")
     @PostMapping("/exam/manage")
     public RestResponse<Exam> create(@AuthenticationPrincipal Jwt jwt, @RequestBody ExamDto dto) {
+        if (dto == null) {
+            return RestResponse.fail("考试配置不能为空");
+        }
         Long userId = currentUserId(jwt);
         dto.setCreator(userId);
         return RestResponse.success(examService.create(dto));
@@ -121,16 +126,30 @@ public class ExamManagementController {
         if (existingCount != questionIds.size()) {
             throw new IllegalArgumentException("组卷包含不存在或已删除的题目");
         }
+        Set<Integer> sequenceNumbers = new HashSet<>();
         List<ExamQuestionRelation> entities = questions.stream().map(item -> {
             if (item == null || item.getQuestionId() == null) throw new IllegalArgumentException("组卷题目不能为空");
+            BigDecimal score = item.getScore() == null ? BigDecimal.ONE : item.getScore();
+            if (score.signum() <= 0 || score.compareTo(BigDecimal.valueOf(1000)) > 0) {
+                throw new IllegalArgumentException("每道题分值必须在 0 到 1000 之间且不能为 0");
+            }
+            int sequence = item.getSeq() == null ? questions.indexOf(item) + 1 : item.getSeq();
+            if (sequence <= 0 || !sequenceNumbers.add(sequence)) {
+                throw new IllegalArgumentException("组卷题号必须为正整数且不能重复");
+            }
             return ExamQuestionRelation.builder()
                     .examId(examId)
                     .questionId(item.getQuestionId())
-                    .score(item.getScore() == null ? java.math.BigDecimal.ONE : item.getScore())
-                    .seq(item.getSeq() == null ? questions.indexOf(item) + 1 : item.getSeq())
+                    .score(score)
+                    .seq(sequence)
                     .overrideProps(item.getOverrideProps())
                     .build();
         }).toList();
+        BigDecimal totalScore = entities.stream().map(ExamQuestionRelation::getScore)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (exam.getPassScore() != null && exam.getPassScore().compareTo(totalScore) > 0) {
+            throw new IllegalArgumentException("及格分不能高于试卷总分（当前总分：" + totalScore.stripTrailingZeros().toPlainString() + "）");
+        }
         return RestResponse.success(relationService.saveBatch(entities));
     }
 
@@ -150,7 +169,18 @@ public class ExamManagementController {
     }
 
     private boolean isAdmin(Jwt jwt) {
-        String role = jwt == null ? "" : jwt.getClaimAsString("role");
-        return "admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role);
+        if (jwt == null) return false;
+        String role = jwt.getClaimAsString("role");
+        if ("admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role)) return true;
+        Object roles = jwt.getClaim("roles");
+        if (roles instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> "admin".equalsIgnoreCase(item.replaceFirst("^ROLE_", "")))) {
+            return true;
+        }
+        Object authorities = jwt.getClaim("authorities");
+        return authorities instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf)
+                .anyMatch(item -> "admin".equalsIgnoreCase(item.replaceFirst("^ROLE_", "")));
     }
 }

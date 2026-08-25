@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,14 +80,13 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         Object claimAuthorities = jwt.getClaims().get("authorities");
-        if (claimAuthorities instanceof List<?> values) {
-            values.forEach(value -> addAuthority(authorities, value));
-        }
+        addAuthorities(authorities, claimAuthorities);
+        addAuthorities(authorities, jwt.getClaims().get("roles"));
         String role = jwt.getClaimAsString("role");
         addAuthority(authorities, role);
 
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userIdString, null, authorities);
+                new UsernamePasswordAuthenticationToken(userIdString, jwt.getTokenValue(), authorities);
 
         authentication.setDetails(jwt.getClaims());
         return authentication;
@@ -100,6 +100,14 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + normalized);
         if (!authorities.contains(authority)) {
             authorities.add(authority);
+        }
+    }
+
+    private void addAuthorities(List<GrantedAuthority> authorities, Object values) {
+        if (values instanceof Collection<?> collection) {
+            collection.forEach(value -> addAuthority(authorities, value));
+        } else {
+            addAuthority(authorities, values);
         }
     }
 }

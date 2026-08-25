@@ -4,7 +4,6 @@ import com.ai.feign.UserErrorQuestionFeignClient;
 import com.ai.mapper.ChatMessageMapper;
 import com.ai.service.agent.ChatService;
 import com.ai.service.agent.AgentManager;
-import com.ai.service.agent.VectorStoreLoaderService;
 import com.ai.service.common.AiChatMessageService;
 import com.domain.entity.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,10 +107,4 @@ public class ApplicationTest {
         log.warn("query2：{}，最终结果：{}",query2,judgeResult2.chatResponse().getResult().getOutput().getText());
     }
 
-    @Resource
-    VectorStoreLoaderService vectorStoreLoaderService;
-    @Test
-    public void testInsertRag(){
-        vectorStoreLoaderService.loadCsvToVectorStore();
-    }
 }

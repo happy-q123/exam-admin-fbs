@@ -39,6 +39,13 @@ public class MessageDispatchServiceImpl implements MessageDispatchService {
     }
 
     /**
+     * 发送协议消息原文。WebRTC SDP/ICE 信令必须保持消息结构，不能再包一层 REST 响应。
+     */
+    public void sendRawToUser(String userId, String destination, Object payload) {
+        doSendToUser(userId, destination, payload, null);
+    }
+
+    /**
      * 批量发送给多人
      */
     @Override

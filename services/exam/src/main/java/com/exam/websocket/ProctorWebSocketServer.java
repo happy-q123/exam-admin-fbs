@@ -58,13 +58,16 @@ public class ProctorWebSocketServer {
             String tokenUserId = jwt.getClaimAsString("userId");
             String tokenRole = jwt.getClaimAsString("role");
             Object tokenRoles = jwt.getClaim("roles");
+            Object tokenAuthorities = jwt.getClaim("authorities");
             boolean observer = "teacher".equalsIgnoreCase(role)
-                    && (hasRole(tokenRole, tokenRoles, "teacher") || hasRole(tokenRole, tokenRoles, "admin"));
-            boolean student = "student".equalsIgnoreCase(role) && hasRole(tokenRole, tokenRoles, "student");
+                    && (hasRole(tokenRole, tokenRoles, tokenAuthorities, "teacher")
+                    || hasRole(tokenRole, tokenRoles, tokenAuthorities, "admin"));
+            boolean student = "student".equalsIgnoreCase(role)
+                    && hasRole(tokenRole, tokenRoles, tokenAuthorities, "student");
             Exam exam = examService == null ? null : examService.getById(Long.valueOf(examId));
             boolean examOwner = exam != null && tokenUserId != null
-                    && (hasRole(tokenRole, tokenRoles, "admin")
-                    || (hasRole(tokenRole, tokenRoles, "teacher")
+                    && (hasRole(tokenRole, tokenRoles, tokenAuthorities, "admin")
+                    || (hasRole(tokenRole, tokenRoles, tokenAuthorities, "teacher")
                     && Long.valueOf(tokenUserId).equals(exam.getCreator())));
             boolean enrolled = exam != null && Boolean.TRUE.equals(exam.getStatus())
                     && userApplyExamRelationService != null
@@ -132,14 +135,16 @@ public class ProctorWebSocketServer {
         error.printStackTrace();
     }
 
-    private boolean hasRole(String role, Object roles, String expected) {
+    private boolean hasRole(String role, Object roles, Object authorities, String expected) {
         if (expected.equalsIgnoreCase(role)) return true;
-        if (roles instanceof java.util.Collection<?> collection) {
-            return collection.stream().map(String::valueOf)
-                    .map(item -> item.replaceFirst("^ROLE_", ""))
-                    .anyMatch(item -> expected.equalsIgnoreCase(item));
-        }
-        return false;
+        return hasRoleInClaim(roles, expected) || hasRoleInClaim(authorities, expected);
+    }
+
+    private boolean hasRoleInClaim(Object claim, String expected) {
+        if (!(claim instanceof java.util.Collection<?> collection)) return false;
+        return collection.stream().map(String::valueOf)
+                .map(item -> item.replaceFirst("^ROLE_", ""))
+                .anyMatch(item -> expected.equalsIgnoreCase(item));
     }
 
     private void recordEvent(String examId, String userId, String eventType, Map<String, Object> payload) {

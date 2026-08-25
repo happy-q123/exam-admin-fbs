@@ -1,7 +1,6 @@
 package com.message.service.schedule;
 
 import com.message.service.MessageDispatchService;
-import com.rmq.producer.RMQProducerService;
 import jakarta.annotation.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,11 +14,9 @@ import java.time.LocalDateTime;
 @Service
 public class TimeUnifyService {
 
-    private final RMQProducerService rmqProducerService;
     private final MessageDispatchService messageDispatchService;
 
-    public TimeUnifyService(RMQProducerService rmqProducerService, MessageDispatchService messageDispatchService) {
-        this.rmqProducerService = rmqProducerService;
+    public TimeUnifyService(MessageDispatchService messageDispatchService) {
         this.messageDispatchService = messageDispatchService;
     }
 

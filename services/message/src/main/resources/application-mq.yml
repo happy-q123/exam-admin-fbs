@@ -1,0 +1,9 @@
+exam:
+  messaging:
+    rocketmq-enabled: true
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  producer:
+    group: exam-fbs-producer-group
+    send-message-timeout: 3000

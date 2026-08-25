@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * 简单的字符串消息消费者
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(prefix = "exam.messaging", name = "rocketmq-enabled", havingValue = "true")
 @RocketMQMessageListener(
     topic = "test-topic",          // 监听的 Topic
     consumerGroup = "my-consumer-group", // 消费者组

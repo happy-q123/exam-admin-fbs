@@ -1,4 +1,10 @@
 spring:
+  autoconfigure:
+    # 智谱仅用于可选的 REST 重排增强；ChatModel 不应因未配置密钥阻断 AI 服务启动。
+    exclude:
+      - org.springframework.ai.model.zhipuai.autoconfigure.ZhiPuAiChatAutoConfiguration
+      - org.springframework.ai.model.zhipuai.autoconfigure.ZhiPuAiEmbeddingAutoConfiguration
+      - org.springframework.ai.model.zhipuai.autoconfigure.ZhiPuAiImageAutoConfiguration
   datasource:
     # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
     url: jdbc:postgresql://${EXAM_DB_HOST:localhost}:${EXAM_DB_PORT:5433}/${EXAM_DB_NAME:new-exam}?stringtype=unspecified&currentSchema=public
@@ -28,13 +34,6 @@ spring:
   ai:
     retry:
       enabled: false  # 禁用自动重试
-    zhipuai:
-      api-key: ${ZHIPUAI_API_KEY:}
-#      embedding:
-#        options:
-#          model: embedding-3
-#          dimensions: 256
-
     vectorstore:
       redis:
         #        indexName: my-vector-index
@@ -94,7 +93,8 @@ redis-stack:
   password: ${REDIS_STACK_PASSWORD:}
 
 seata:
-  enabled: true
+  # AI 服务的知识检索与会话链路不依赖 Seata Server；需要分布式事务时再启用 seata profile。
+  enabled: ${SEATA_ENABLED:false}
   application-id: ${spring.application.name}
   # 1. 定义事务组名称（必须与下面 mapping 中的 key 一致）
   tx-service-group: my_test_tx_group
