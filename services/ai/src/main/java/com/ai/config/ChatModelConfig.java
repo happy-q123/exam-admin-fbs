@@ -2,8 +2,10 @@ package com.ai.config;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.model.chat.client.autoconfigure.ChatClientBuilderConfigurer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -28,13 +30,32 @@ public class ChatModelConfig {
     @Bean
     @Scope("prototype")
     ChatClient.Builder ollamaChatClientBuilder(ChatClientBuilderConfigurer configurer,
-                                         @Qualifier("ollamaChatModel") ChatModel ollamaChatModel){
+                                         @Qualifier("ollamaChatModel") ChatModel ollamaChatModel,
+                                         @Value("${OLLAMA_CHAT_MODEL:qwen3:4b}") String model,
+                                         @Value("${OLLAMA_NUM_PREDICT:512}") Integer numPredict,
+                                         @Value("${OLLAMA_NUM_CTX:8192}") Integer numCtx,
+                                         @Value("${OLLAMA_TEMPERATURE:0.3}") Double temperature,
+                                         @Value("${OLLAMA_THINK:false}") Boolean thinking){
         // 1. 手动创建一个绑定了 Ollama 的 Builder
         ChatClient.Builder builder = ChatClient.builder(ollamaChatModel);
 
         // 2. 让 Configurer 把其他的默认设置（如 Observation 等）应用上去
         // 这样既解决了冲突，又保留了 Spring AI 的其他自动配置特性
-        return configurer.configure(builder);
+        ChatClient.Builder configuredBuilder = configurer.configure(builder);
+
+        // ThinkOption 是 Spring AI 1.1 的接口类型，直接通过 YAML 的 think 字段绑定存在歧义。
+        // 在统一 Builder 上显式设置，确保 qwen3 的思考内容不会被误当成空答案返回。
+        OllamaChatOptions.Builder optionsBuilder = OllamaChatOptions.builder()
+                .model(model)
+                .temperature(temperature)
+                .numPredict(numPredict)
+                .numCtx(numCtx);
+        if (Boolean.TRUE.equals(thinking)) {
+            optionsBuilder.enableThinking();
+        } else {
+            optionsBuilder.disableThinking();
+        }
+        return configuredBuilder.defaultOptions(optionsBuilder.build());
     }
 
 }

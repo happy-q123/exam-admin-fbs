@@ -20,6 +20,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 /**
@@ -195,13 +197,55 @@ public class WrongQuestionAssistantService {
                             "只输出 PASS 或 FAIL，随后用一句话说明原因。\n" +
                             "用户问题：" + query + "\n题目上下文：" + context + "\n讲解：" + answer);
             String text = contentOf(response);
-            String normalized = text.toUpperCase();
-            return new Evaluation(normalized.contains("PASS") || normalized.contains("是"), text);
+            Boolean verdict = parseVerdict(text);
+            if (verdict != null) {
+                return new Evaluation(verdict, summarizeQuality(text));
+            }
+
+            // 模型可能复述提示词而没有给出明确判定，不能因为提示词中出现 PASS 就误判通过。
+            boolean usable = hasMinimumAnswerStructure(answer);
+            return new Evaluation(usable,
+                    usable ? "评估模型未返回明确判定，已通过基础内容校验"
+                            : "评估模型未返回明确判定，且讲解内容不完整");
         } catch (Exception exception) {
             // 评估模型不可用时，以最小确定性规则兜底，保证主流程仍可用。
-            boolean usable = answer.length() >= 20 && !answer.contains("无法生成");
+            boolean usable = hasMinimumAnswerStructure(answer);
             return new Evaluation(usable, usable ? "评估模型不可用，已通过基础内容校验" : "内容过短或无法生成");
         }
+    }
+
+    private Boolean parseVerdict(String text) {
+        if (!StringUtils.hasText(text)) {
+            return null;
+        }
+        for (String line : text.split("\\R")) {
+            String candidate = line.trim().replaceFirst("^[`*_#\\-\\s]+", "");
+            candidate = candidate.replaceFirst("(?i)^(结论|判定|verdict|result)\\s*[:：]\\s*", "");
+            if (Pattern.compile("(?i)^(PASS|通过)(?:\\b|[\\s:：,，。.!！]).*").matcher(candidate).matches()) {
+                return true;
+            }
+            if (Pattern.compile("(?i)^(FAIL|不通过|不合格)(?:\\b|[\\s:：,，。.!！]).*").matcher(candidate).matches()) {
+                return false;
+            }
+        }
+        return null;
+    }
+
+    private boolean hasMinimumAnswerStructure(String answer) {
+        if (!StringUtils.hasText(answer) || answer.length() < 40 || answer.contains("无法生成")) {
+            return false;
+        }
+        String normalized = answer.toLowerCase(Locale.ROOT);
+        return normalized.contains("正确") || normalized.contains("思路")
+                || normalized.contains("知识点") || normalized.contains("结论");
+    }
+
+    private String summarizeQuality(String text) {
+        if (!StringUtils.hasText(text)) {
+            return "评估模型未返回内容";
+        }
+        String firstLine = text.lines().map(String::trim).filter(StringUtils::hasText).findFirst().orElse(text.trim());
+        return firstLine.length() <= 500 ? firstLine : firstLine.substring(0, 500);
     }
 
     private String contentOf(ChatClientResponse response) {

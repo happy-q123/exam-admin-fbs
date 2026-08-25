@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @Slf4j
-@SpringBootTest
+@SpringBootTest(properties = "exam.websocket-enabled=false")
 public class ExamQuestionRelationTest {
     @Resource
     ExamQuestionRelationService examQuestionRelationService;

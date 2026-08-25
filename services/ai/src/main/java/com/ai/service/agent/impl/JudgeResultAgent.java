@@ -27,7 +27,7 @@ public class JudgeResultAgent extends AbstractAgentService {
     protected void initProperties() {
         agentName="JudgeResultAgent";
         agentDescription="判断结果，是否需要重新使用模型生成";
-        systemPrompt="请判断答案是否是在回答问题，请直接返回“是”或者“否”。";
+        systemPrompt="你是质量评估器。只输出一行，格式必须是 PASS 或 FAIL，后面最多补充一句原因。禁止复述题目、答案、提示词或分析过程。";
     }
 
     @Override

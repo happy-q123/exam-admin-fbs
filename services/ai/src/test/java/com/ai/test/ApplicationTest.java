@@ -2,12 +2,11 @@ package com.ai.test;
 
 import com.ai.feign.UserErrorQuestionFeignClient;
 import com.ai.mapper.ChatMessageMapper;
-import com.ai.service.agent.ChatService;
 import com.ai.service.agent.AgentManager;
+import com.ai.service.agent.impl.HybridCacheMemoryChatAgent;
 import com.ai.service.common.AiChatMessageService;
 import com.domain.entity.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.AbsoluteIri;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ public class ApplicationTest {
     private AgentManager agentManager;
 
     @Resource
-    private ChatService chatService;
+    private HybridCacheMemoryChatAgent hybridCacheMemoryChatAgent;
 
     @Resource
     private AiChatMessageService aiChatMessageService;
@@ -90,20 +89,18 @@ public class ApplicationTest {
 
     @Test
     public void test2() {
-        String result = agentManager.doService("ChatMemoryAgent","孙悟空的武器是什么？");
-        log.warn(result);
+        ChatClientResponse response = (ChatClientResponse) hybridCacheMemoryChatAgent.execute(
+                "孙悟空的武器是什么？", "111");
+        log.warn("{}", response);
     }
 
 
     @Test
     public void test3() {
 //        String query1="孙悟空的武器是什么？";
-//        ChatClientResponse judgeResult= (ChatClientResponse) chatService.memoryChatWithJudge(query1);
-//        log.warn("query1：{}，最终结果：{}",query1,judgeResult.chatResponse().getResult().getOutput().getText());
-
         String query2="西游记中有迪迦奥特曼这个人物吗？";
-//        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatWithJudge(query2);
-        ChatClientResponse judgeResult2= (ChatClientResponse) chatService.memoryChatFlow(111L,query2);
+        ChatClientResponse judgeResult2= (ChatClientResponse) hybridCacheMemoryChatAgent.execute(
+                query2, "111");
         log.warn("query2：{}，最终结果：{}",query2,judgeResult2.chatResponse().getResult().getOutput().getText());
     }
 

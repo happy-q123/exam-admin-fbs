@@ -40,7 +40,7 @@ public class WrongQuestionAssistantController {
     @GetMapping("/conversations/{conversationId}/messages")
     public RestResponse<List<ConversationMessageView>> history(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long conversationId) {
+            @PathVariable("conversationId") Long conversationId) {
         return RestResponse.success(assistantService.history(currentUserId(jwt), conversationId));
     }
 

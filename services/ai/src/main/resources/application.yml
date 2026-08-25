@@ -47,9 +47,14 @@ spring:
       read-timeout: 120s
 
       chat:
-        model: qwen3:4b
+        model: ${OLLAMA_CHAT_MODEL:qwen3:4b}
         options:
-          temperature: 0.7
+          # 本地 Qwen3 默认会进行较长的思考；考试场景需要稳定的响应时延。
+          # 通过环境变量保留调优入口，关闭思考并限制输出长度，避免一次请求拖垮质量评估链路。
+          temperature: 0.3
+          num-predict: ${OLLAMA_NUM_PREDICT:512}
+          num-ctx: ${OLLAMA_NUM_CTX:8192}
+          think: ${OLLAMA_THINK:false}
       embedding:
         model: embeddinggemma:latest
 
