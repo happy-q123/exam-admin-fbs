@@ -1,9 +1,9 @@
 spring:
   datasource:
     # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
-    url: jdbc:postgresql://localhost:5433/new-exam?stringtype=unspecified&currentSchema=public
-    username: postgres
-    password: 123456
+    url: jdbc:postgresql://${EXAM_DB_HOST:localhost}:${EXAM_DB_PORT:5433}/${EXAM_DB_NAME:new-exam}?stringtype=unspecified&currentSchema=public
+    username: ${EXAM_DB_USERNAME:postgres}
+    password: ${EXAM_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   application:
@@ -50,4 +50,3 @@ mybatis-plus:
       # 如果你的 PG 表主键是 SERIAL/BIGSERIAL (自增)，用 AUTO
       # 如果你想用 MP 自带的雪花算法 (分布式ID)，用 ASSIGN_ID
       id-type: auto
-

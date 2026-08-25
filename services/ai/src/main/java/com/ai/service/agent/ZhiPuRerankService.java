@@ -4,12 +4,14 @@ package com.ai.service.agent;
 import com.ai.dto.RerankRequest;
 import com.ai.dto.RerankResponse;
 import com.ai.dto.Result;
+import com.domain.annotation.CacheGoverned;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 public class ZhiPuRerankService {
@@ -43,14 +45,33 @@ public class ZhiPuRerankService {
     }
 
     //排序并返回Result结果，Result包含index、score、context
+    @CacheGoverned(namespace = "rerank", ttlSeconds = 300)
     public List<Result> rerankAndResult(String query, List<String> documents, int topN){
-        RerankResponse response = rerank(query, documents, topN);
-        return response.results();
+        if (documents == null || documents.isEmpty()) {
+            return List.of();
+        }
+        try {
+            RerankResponse response = rerank(query, documents, topN);
+            if (response != null && response.results() != null && !response.results().isEmpty()) {
+                return response.results().stream().map(item -> {
+                    int index = item.index() == null ? 0 : item.index();
+                    String document = item.document();
+                    if ((document == null || document.isBlank()) && index >= 0 && index < documents.size()) {
+                        document = documents.get(index);
+                    }
+                    return new Result(index, item.score() == null ? 0D : item.score(), document);
+                }).filter(item -> item.document() != null).toList();
+            }
+        } catch (Exception ignored) {
+            // 重排服务不可用时保留向量检索顺序，不能让错题助手整体失败。
+        }
+        return IntStream.range(0, Math.min(topN, documents.size()))
+                .mapToObj(index -> new Result(index, 0D, documents.get(index)))
+                .toList();
     }
 
     //排序并返回context组成的list，list元素为排序后的顺序
     public List<String> rerankAndContext(String query, List<String> documents, int topN){
-        RerankResponse response = rerank(query, documents, topN);
-        return response.results().stream().map(Result::document).toList();
+        return rerankAndResult(query, documents, topN).stream().map(Result::document).toList();
     }
 }

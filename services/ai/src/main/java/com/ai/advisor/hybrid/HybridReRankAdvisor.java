@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class HybridReRankAdvisor implements BaseAdvisor {
     private final int order;
     private final VectorStore ragVectorStore;
+    private VectorStore persistentVectorStore;
     private final ZhiPuRerankService rerankService;
     private final AiChatComposeService aiChatComposeService;
 
@@ -55,6 +56,13 @@ public class HybridReRankAdvisor implements BaseAdvisor {
         if (rerankPromptTemplate != null) {
             this.rerankPromptTemplate = rerankPromptTemplate;
         }
+    }
+
+    public HybridReRankAdvisor(ZhiPuRerankService rerankService, VectorStore ragVectorStore,
+                               VectorStore persistentVectorStore, int order,
+                               AiChatComposeService aiChatComposeService) {
+        this(rerankService, ragVectorStore, order, aiChatComposeService, null, null);
+        this.persistentVectorStore = persistentVectorStore;
     }
 
     // --- 构造方法重载，便于不同场景调用 ---
@@ -83,35 +91,31 @@ public class HybridReRankAdvisor implements BaseAdvisor {
         // 获取上下文中的 ragName
         Object ragNameObj = chatClientRequest.context().get("ragName");
 
-        //删除默认加载逻辑：如果 context 没给 ragName，则完全不进行 RAG
-        if (ragNameObj == null) {
-            return chatClientRequest;
-        }
-
         // 范化 ragName 为 List<String>，便于后续处理
         List<String> targetRagNames = normalizeRagNames(ragNameObj);
-        if (targetRagNames.isEmpty()) {
-            return chatClientRequest;
-        }
 
         // 构建包含 Query 和 Filter 的完整 SearchRequest
         SearchRequest finalRequest = buildDynamicSearchRequest(query, targetRagNames);
 
         List<Document> documents;
         try {
-            // Redis 搜索
             log.info("正在从 Redis 搜索内容: {}, 来源范围: {}", query, targetRagNames);
             documents = ragVectorStore.similaritySearch(finalRequest);
-
-            // Redis 未命中，降级查库
-            if (documents == null || documents.isEmpty()) {
-                log.info("Redis 未命中，降级查询数据库...");
-                documents = searchAndCacheFromDatabase(query, targetRagNames, finalRequest.getTopK());
-            }
-
         } catch (Exception e) {
-            log.error("RAG 检索异常 (Redis/DB)，跳过增强: {}", e.getMessage());
-            return chatClientRequest;
+            log.warn("Redis 检索不可用，继续尝试持久化向量库: {}", e.getMessage());
+            documents = List.of();
+        }
+
+        if ((documents == null || documents.isEmpty()) && persistentVectorStore != null) {
+            try {
+                documents = persistentVectorStore.similaritySearch(finalRequest);
+            } catch (Exception e) {
+                log.warn("PGVector 检索不可用，继续尝试历史本地表: {}", e.getMessage());
+            }
+        }
+
+        if (documents == null || documents.isEmpty()) {
+            documents = searchAndCacheFromDatabase(query, targetRagNames, finalRequest.getTopK());
         }
 
         if (documents == null || documents.isEmpty()) {
@@ -149,6 +153,9 @@ public class HybridReRankAdvisor implements BaseAdvisor {
      * (2) 适配 ragName 为列表或字符串的过滤条件
      */
     private SearchRequest buildDynamicSearchRequest(String query, List<String> ragNames) {
+        if (ragNames == null || ragNames.isEmpty()) {
+            return SearchRequest.from(this.baseSearchRequest).query(query).build();
+        }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filter;
 

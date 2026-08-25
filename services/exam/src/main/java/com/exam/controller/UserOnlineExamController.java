@@ -6,10 +6,11 @@ import com.domain.restful.RestResponse;
 import com.exam.service.OnlineExamService;
 import com.exam.service.UserOnlineExamAnswerService;
 import com.exam.service.UserOnlineExamOptionsService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,7 +43,7 @@ public class UserOnlineExamController {
     public RestResponse saveUserOnlineExamOption(@AuthenticationPrincipal Jwt jwt
             ,@RequestBody UserOnlineExamOptionsDto userOnlineExamOptionsDto){
 
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
 
@@ -59,15 +60,25 @@ public class UserOnlineExamController {
     public RestResponse saveOnlineExamAnswer(@AuthenticationPrincipal Jwt jwt
             ,@RequestBody UserOnlineExamAnswerDto userOnlineExamAnswerDto){
 
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
 
-        if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
-            throw new RuntimeException("token用户id和请求体中用户id不一致");
+        userOnlineExamAnswerDto.setUserId(userId);
+        userOnlineExamAnswerDto.setOptionTime(LocalDateTime.now());
 
         userOnlineExamAnswerService.saveAnswer(userOnlineExamAnswerDto);
         return RestResponse.success("保存成功");
+    }
+
+    @GetMapping("/getOnlineExamAnswers")
+    public RestResponse getOnlineExamAnswers(@AuthenticationPrincipal Jwt jwt,
+                                             @RequestParam Long examId) {
+        Long userId = currentUserId(jwt);
+        if (userId == null) {
+            return RestResponse.fail("token中无userId");
+        }
+        return RestResponse.success(userOnlineExamAnswerService.getAnswersByExam(userId, examId));
     }
 
     /**
@@ -82,7 +93,7 @@ public class UserOnlineExamController {
     public RestResponse<String> acquireEnterExam(@AuthenticationPrincipal Jwt jwt,
             @RequestBody UserOnlineExamOptionsDto userOnlineExamAnswerDto) {
 
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
 
@@ -96,7 +107,7 @@ public class UserOnlineExamController {
     @PostMapping("/exitOnlineExam")
     public RestResponse<String> exitOnlineExam(@AuthenticationPrincipal Jwt jwt,
             @RequestBody UserOnlineExamOptionsDto userOnlineExamAnswerDto) {
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
 
@@ -105,5 +116,11 @@ public class UserOnlineExamController {
 
         onlineExamService.processUserDropOnline(userOnlineExamAnswerDto);
         return RestResponse.success("成功");
+    }
+
+    private Long currentUserId(Jwt jwt) {
+        if (jwt == null || jwt.getClaim("userId") == null) return null;
+        Object value = jwt.getClaim("userId");
+        return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
     }
 }

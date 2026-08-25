@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * description
  * SpringSecurity需要实现的UserDetails类，该类的方法允许去数据库查询用户的密码和权限。
@@ -37,7 +40,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (!userResult.isStatus()) {
             throw new UsernameNotFoundException("用户已被禁用");
         }
+        List<String> authorities = new ArrayList<>();
+        authorities.add(userResult.getRole().toString());
+        if (userResult.getPermissions() != null) {
+            userResult.getPermissions().stream()
+                    .filter(permission -> permission != null && !permission.isBlank())
+                    .map(permission -> "PERM_" + permission)
+                    .forEach(authorities::add);
+        }
         return new CustomSecurityUser(username, userResult.getPassword(),
-                userResult.getId(), userResult.getRole().toString());
+                userResult.getId(), authorities.toArray(String[]::new));
     }
 }

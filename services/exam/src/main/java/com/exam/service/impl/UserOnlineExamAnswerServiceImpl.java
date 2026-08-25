@@ -10,6 +10,7 @@ import com.domain.vo.UserErrorQuestionsVo;
 import com.exam.feign.ExamQuestionRelationFeignClient;
 import com.exam.mapper.UserOnlineExamAnswerMapper;
 import com.exam.service.UserOnlineExamAnswerService;
+import com.exam.service.ExamQuestionRelationService;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,10 +26,13 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
 
     //todo 远程调用问题
     private final ExamQuestionRelationFeignClient examQuestionRelationFeignClient;
+    private final ExamQuestionRelationService examQuestionRelationService;
     private final String USER_ONLINE_KEY = UserOnlineKeyEnum.ONLINE_USERS.buildKey();
 
-    public UserOnlineExamAnswerServiceImpl(ExamQuestionRelationFeignClient examQuestionRelationFeignClient) {
+    public UserOnlineExamAnswerServiceImpl(ExamQuestionRelationFeignClient examQuestionRelationFeignClient,
+                                           ExamQuestionRelationService examQuestionRelationService) {
         this.examQuestionRelationFeignClient = examQuestionRelationFeignClient;
+        this.examQuestionRelationService = examQuestionRelationService;
     }
 
     //判断用户是否在线
@@ -38,6 +42,16 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
 
     @Override
     public void saveAnswer(UserOnlineExamAnswerDto userOnlineExamAnswerDto) {
+        if (userOnlineExamAnswerDto == null || userOnlineExamAnswerDto.getUserId() == null
+                || userOnlineExamAnswerDto.getExamId() == null || userOnlineExamAnswerDto.getQuestionId() == null) {
+            throw new IllegalArgumentException("答案缺少用户、考试或题目编号");
+        }
+        if (!examQuestionRelationService.lambdaQuery()
+                .eq(com.domain.entity.relation.ExamQuestionRelation::getExamId, userOnlineExamAnswerDto.getExamId())
+                .eq(com.domain.entity.relation.ExamQuestionRelation::getQuestionId, userOnlineExamAnswerDto.getQuestionId())
+                .exists()) {
+            throw new IllegalArgumentException("题目不属于当前考试");
+        }
         UserOnlineExamAnswer userOnlineExamAnswer = userOnlineExamAnswerDto.toEntityForSave();
         String userId = String.valueOf(userOnlineExamAnswer.getUserId());
 
@@ -67,15 +81,31 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
         List<UserOnlineExamAnswer> l= lambdaQuery()
                 .eq(UserOnlineExamAnswer::getUserId,userId)
                 .list();
+        if (l.isEmpty()) return List.of();
 
         List<UserOnlineExamAnswerDto> userOnlineExamAnswerDtoList = UserOnlineExamAnswerDto.toDto(l) ;
         List<Long> questionIds=l.stream().map(UserOnlineExamAnswer::getQuestionId).toList();
         RestResponse<List<QuestionDto>> questionDtos=examQuestionRelationFeignClient.getListByIds(questionIds);
+        if (questionDtos == null || !Integer.valueOf(200).equals(questionDtos.getCode()) || questionDtos.getData() == null) {
+            return List.of();
+        }
         List<QuestionDto> questionDtoList=questionDtos.getData();
 
         List<UserErrorQuestionsVo> resultList=UserErrorQuestionsVo.toVo(userOnlineExamAnswerDtoList,questionDtoList);
 
         return resultList;
+    }
+
+    @Override
+    public List<UserOnlineExamAnswerDto> getAnswersByExam(Long userId, Long examId) {
+        if (userId == null || examId == null) {
+            throw new IllegalArgumentException("用户ID和考试ID不能为空");
+        }
+        return UserOnlineExamAnswerDto.toDto(lambdaQuery()
+                .eq(UserOnlineExamAnswer::getUserId, userId)
+                .eq(UserOnlineExamAnswer::getExamId, examId)
+                .orderByAsc(UserOnlineExamAnswer::getQuestionId)
+                .list());
     }
 
     private void updateAnswer(UserOnlineExamAnswer userOnlineExamAnswer) {

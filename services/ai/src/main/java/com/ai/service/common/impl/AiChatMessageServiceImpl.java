@@ -9,7 +9,6 @@ import com.domain.entity.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,11 +33,9 @@ public class AiChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, Cha
     public List<ChatMessageComposeDto> searchSimilarMessages(Long userId, Long conversationId, String query, int limit) {
         float[] fv= embeddingModel.embed(query);
         String vectorStr = EmbedOptionsUtil.queryToJson(fv);
-        getBaseMapper().searchVectorInConversation(userId, conversationId, vectorStr, limit);
         return getBaseMapper().searchVectorInConversation(userId, conversationId, vectorStr, limit);
     }
 
-    @Async // 建议异步保存，不阻塞 AI 回复用户的速度
     @Override
     public Long saveChatPair(String userContent, LocalDateTime userCreateTime,
                              String aiContent, LocalDateTime aiCreateTime) {
@@ -60,5 +57,10 @@ public class AiChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, Cha
         // msg.setMessageSource(messageSource); // 如果表里有这个字段
         save(msg);
         return msg.getId();
+    }
+
+    @Override
+    public List<ChatMessageComposeDto> findConversationMessages(Long userId, Long conversationId) {
+        return getBaseMapper().findConversationMessages(userId, conversationId);
     }
 }

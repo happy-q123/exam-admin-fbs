@@ -2,11 +2,16 @@ package com.ai.config;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgDistanceType;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIdType;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import redis.clients.jedis.JedisPooled;
 
 import java.util.List;
@@ -16,7 +21,7 @@ public class VectorStoreConfig {
     @Value("${redis-stack.port:6378}") // 冒号后是默认值，如果配置文件没写就用6378
     private int redisStackPort;
 
-    @Value("${redis-stack.password:123456}")
+    @Value("${redis-stack.password:}")
     private String password;
 //    RedisVectorStore
 
@@ -110,6 +115,23 @@ public class VectorStoreConfig {
                 .indexName("exam-fbs-rag")
                 .metadataFields(metadataFields)
                 .initializeSchema(true)
+                .build();
+    }
+
+    /**
+     * PGVector 是知识库的持久层，Redis VectorStore 只做热检索和缓存。
+     * 表结构由 sql/migration_2026-08-25_platform_upgrade.sql 管理，避免应用启动时擅自删表。
+     */
+    @Bean("pgVectorStore")
+    public PgVectorStore pgVectorStore(JdbcTemplate jdbcTemplate,
+                                       @Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel) {
+        return PgVectorStore.builder(jdbcTemplate, embeddingModel)
+                .dimensions(768)
+                .idType(PgIdType.TEXT)
+                .distanceType(PgDistanceType.COSINE_DISTANCE)
+                .indexType(PgIndexType.HNSW)
+                .vectorTableName("ai_knowledge_vector")
+                .initializeSchema(false)
                 .build();
     }
 

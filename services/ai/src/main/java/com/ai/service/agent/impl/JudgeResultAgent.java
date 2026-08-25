@@ -28,7 +28,10 @@ public class JudgeResultAgent extends AbstractAgentService {
 
     @Override
     public Object execute(String query, String userId) {
-        return null;
+        return chatClient.prompt(query)
+                .advisors(advisors -> advisors.param("userId", userId))
+                .call()
+                .chatClientResponse();
     }
 
     @Override

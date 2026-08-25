@@ -104,7 +104,8 @@ public class UserErrorQuestionsVo {
                 .userOnlineExamAnswerId(userOnlineExamAnswerDto.getId())
                 .examId(userOnlineExamAnswerDto.getExamId())
                 .userAnswer(userOnlineExamAnswerDto.getAnswer())
-                .practicalScore(BigDecimal.valueOf(userOnlineExamAnswerDto.getScore()))
+                .practicalScore(userOnlineExamAnswerDto.getScore() == null
+                        ? BigDecimal.ZERO : BigDecimal.valueOf(userOnlineExamAnswerDto.getScore()))
 
                 .questionId(questionDto.getId())
                 .type(questionDto.getType())

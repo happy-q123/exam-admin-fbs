@@ -1,15 +1,20 @@
 spring:
   datasource:
     # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
-    url: jdbc:postgresql://localhost:5433/new-exam?stringtype=unspecified&currentSchema=public
-    username: postgres
-    password: 123456
+    url: jdbc:postgresql://${EXAM_DB_HOST:localhost}:${EXAM_DB_PORT:5433}/${EXAM_DB_NAME:new-exam}?stringtype=unspecified&currentSchema=public
+    username: ${EXAM_DB_USERNAME:postgres}
+    password: ${EXAM_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
 
 
   application:
     name: exam-service
+  data:
+    redis:
+      host: ${REDIS_STACK_HOST:localhost}
+      port: ${REDIS_STACK_PORT:6378}
+      password: ${REDIS_STACK_PASSWORD:}
   cloud:
     nacos:
       discovery:
@@ -33,6 +38,16 @@ server:
   servlet:
     # 应用的访问路径
     context-path: /exam
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 
 mybatis-plus:
@@ -59,4 +74,3 @@ rocketmq:
   producer:
     group: exam-fbs-producer-group  # 生产者组名
     send-message-timeout: 3000 # 发送超时时间（毫秒）
-

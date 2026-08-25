@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.springframework.util.Assert;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -22,6 +24,8 @@ public class UserDto extends BasePojo {
     private String nickName;
     private UserRoleEnum role;
     private boolean status;
+    /** 登录时由用户服务加载的数据库权限编码。管理端列表默认不填充。 */
+    private List<String> permissions;
 
     public static UserDto buildForLogin(User user){
         if(user == null){

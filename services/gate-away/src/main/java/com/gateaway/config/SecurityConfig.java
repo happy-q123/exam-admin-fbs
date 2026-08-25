@@ -106,7 +106,7 @@ public class SecurityConfig {
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             // 打印一下日志，方便看控制台
             System.out.println("触发 401 异常: " + ex.getMessage());
-            String body = "{\"code\": 401, \"msg\": \"未授权或Token无效: " + ex.getMessage() + "\"}";
+            String body = "{\"code\":401,\"message\":\"未授权或Token无效\"}";
             DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
             return response.writeWith(Mono.just(buffer));
         };
@@ -118,7 +118,7 @@ public class SecurityConfig {
             ServerHttpResponse response = exchange.getResponse();
             response.setStatusCode(HttpStatus.FORBIDDEN);
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            String body = "{\"code\": 403, \"msg\": \"权限不足: " + ex.getMessage() + "\"}";
+            String body = "{\"code\":403,\"message\":\"权限不足\"}";
             DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
             return response.writeWith(Mono.just(buffer));
         };

@@ -28,4 +28,9 @@ public interface AiChatMessageService extends IService<ChatMessage> {
      * 内部逻辑应包含：生成 userEmbedding 和 aiEmbedding，然后存入数据库。返回保存成功的ID
      */
     Long saveChatPair(String userContent, LocalDateTime userCreateTime, String aiContent, LocalDateTime aiCreateTime);
+
+    /**
+     * 按会话顺序读取完整历史。语义检索只用于补充上下文，不能替代用户可见的聊天记录。
+     */
+    List<ChatMessageComposeDto> findConversationMessages(Long userId, Long conversationId);
 }

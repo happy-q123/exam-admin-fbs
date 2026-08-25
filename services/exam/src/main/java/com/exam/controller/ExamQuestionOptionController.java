@@ -1,20 +1,27 @@
 package com.exam.controller;
 
 import com.domain.restful.RestResponse;
+import com.domain.entity.ErrorBook;
 import com.domain.vo.UserErrorQuestionsVo;
+import com.exam.service.ErrorBookService;
 import com.exam.service.UserOnlineExamAnswerService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 public class ExamQuestionOptionController {
     private final UserOnlineExamAnswerService userOnlineExamAnswerService;
+    private final ErrorBookService errorBookService;
 
-    public ExamQuestionOptionController(UserOnlineExamAnswerService userOnlineExamAnswerService) {
+    public ExamQuestionOptionController(UserOnlineExamAnswerService userOnlineExamAnswerService,
+                                        ErrorBookService errorBookService) {
         this.userOnlineExamAnswerService = userOnlineExamAnswerService;
+        this.errorBookService = errorBookService;
     }
 
     /**
@@ -26,7 +33,7 @@ public class ExamQuestionOptionController {
     @GetMapping("/getExamErrorQuestions/{userId}")
     public RestResponse<List<UserErrorQuestionsVo>> insertOne(@AuthenticationPrincipal Jwt jwt,
                                                         @PathVariable("userId") String userId) {
-        Long jUserId = jwt.getClaim("userId");
+        Long jUserId = currentUserId(jwt);
         if(jUserId==null)
             return RestResponse.fail("token中无userId");
         Long userIdLong=null;
@@ -40,7 +47,21 @@ public class ExamQuestionOptionController {
                 && !"admin".equalsIgnoreCase(role)) {
             return RestResponse.fail(403, "只能查看自己的错题");
         }
-        List<UserErrorQuestionsVo>l=userOnlineExamAnswerService.getUserAnswersByUserId(userIdLong);
+        Set<String> errorKeys = errorBookService.lambdaQuery()
+                .eq(ErrorBook::getUserId, userIdLong)
+                .list().stream()
+                .map(item -> item.getExamId() + ":" + item.getQuestionId())
+                .collect(Collectors.toSet());
+        List<UserErrorQuestionsVo> l = userOnlineExamAnswerService.getUserAnswersByUserId(userIdLong)
+                .stream()
+                .filter(item -> errorKeys.contains(item.getExamId() + ":" + item.getQuestionId()))
+                .toList();
         return RestResponse.success(l);
+    }
+
+    private Long currentUserId(Jwt jwt) {
+        if (jwt == null || jwt.getClaim("userId") == null) return null;
+        Object value = jwt.getClaim("userId");
+        return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
     }
 }

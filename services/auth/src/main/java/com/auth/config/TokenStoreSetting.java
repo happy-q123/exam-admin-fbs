@@ -8,6 +8,8 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.util.List;
+
 @Configuration
 public class TokenStoreSetting {
 
@@ -33,8 +35,18 @@ public class TokenStoreSetting {
                 if (principal.getPrincipal() instanceof CustomSecurityUser user) {
                     // 往 Token 的 payload (载荷) 里添加字段
                     context.getClaims().claim("userId", user.getId());
-                    user.getAuthorities().stream().findFirst()
-                            .ifPresent(authority -> context.getClaims().claim("role", authority.getAuthority()));
+                    List<String> authorities = user.getAuthorities().stream()
+                            .map(authority -> authority.getAuthority())
+                            .distinct()
+                            .toList();
+                    List<String> roles = authorities.stream()
+                            .filter(authority -> authority.matches("(?i)^(ROLE_)?(student|teacher|admin)$"))
+                            .map(authority -> authority.replaceFirst("^ROLE_", ""))
+                            .distinct()
+                            .toList();
+                    context.getClaims().claim("authorities", authorities);
+                    context.getClaims().claim("roles", roles);
+                    roles.stream().findFirst().ifPresent(role -> context.getClaims().claim("role", role));
                 }
             }
         };

@@ -67,6 +67,7 @@ public class UserOnlineExamAnswerDto extends BasePojo {
     public static UserOnlineExamAnswerDto toDto(UserOnlineExamAnswer userOnlineExamAnswer) {
         return  UserOnlineExamAnswerDto.builder()
                 .id(userOnlineExamAnswer.getId())
+                .userId(userOnlineExamAnswer.getUserId())
                 .answer(userOnlineExamAnswer.getAnswer())
                 .examId(userOnlineExamAnswer.getExamId())
                 .questionId(userOnlineExamAnswer.getQuestionId())

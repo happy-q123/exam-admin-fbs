@@ -9,6 +9,8 @@ import com.domain.entity.Question;
 import com.domain.entity.UserAnswer;
 import com.domain.entity.attribute.QuestionBody;
 import com.domain.entity.relation.ExamQuestionRelation;
+import com.domain.entity.relation.UserOnlineExamAnswer;
+import com.domain.entity.attribute.UserOnlineExamQuestionAnswerBody;
 import com.domain.enums.QuestionTypeEnum;
 import com.exam.mapper.ExamRecordMapper;
 import com.exam.service.ErrorBookService;
@@ -17,6 +19,7 @@ import com.exam.service.ExamRecordService;
 import com.exam.service.ExamService;
 import com.exam.service.UserAnswerService;
 import com.exam.service.UserApplyExamRelationService;
+import com.exam.service.UserOnlineExamAnswerService;
 import com.exam.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +49,9 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
 
     @Autowired
     private UserAnswerService userAnswerService;
+
+    @Autowired
+    private UserOnlineExamAnswerService userOnlineExamAnswerService;
 
     @Autowired
     private ErrorBookService errorBookService;
@@ -120,6 +126,11 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         Map<Long, QuestionDto> questionById = questionService.listByIds(questionIds).stream()
                 .map(QuestionDto::toDto)
                 .collect(Collectors.toMap(QuestionDto::getId, question -> question, (first, second) -> first));
+
+        // 自动交卷或断线恢复时，允许使用服务端保存的逐题答案，避免浏览器内存丢失造成整卷空白。
+        if (submittedAnswers == null || submittedAnswers.isEmpty()) {
+            submittedAnswers = getSavedOnlineAnswers(userId, examId);
+        }
 
         Map<Long, UserAnswer> submittedByQuestion = new HashMap<>();
         if (submittedAnswers != null) {
@@ -264,6 +275,26 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
             errorBook.setUpdateTime(now);
             errorBookService.save(errorBook);
         }
+    }
+
+    private List<UserAnswer> getSavedOnlineAnswers(Long userId, Long examId) {
+        return userOnlineExamAnswerService.lambdaQuery()
+                .eq(UserOnlineExamAnswer::getUserId, userId)
+                .eq(UserOnlineExamAnswer::getExamId, examId)
+                .list()
+                .stream()
+                .map(item -> {
+                    UserAnswer answer = new UserAnswer();
+                    answer.setQuestionId(item.getQuestionId());
+                    UserOnlineExamQuestionAnswerBody body = item.getAnswer();
+                    if (body != null && body.getAnswer() != null) {
+                        answer.setUserAnswer(String.valueOf(body.getAnswer()));
+                    } else {
+                        answer.setUserAnswer("");
+                    }
+                    return answer;
+                })
+                .toList();
     }
 
     private boolean isCorrect(QuestionBody body, QuestionTypeEnum type, String userAnswer) {

@@ -1,13 +1,18 @@
 spring:
   datasource:
     # PG 连接串：建议显式加上 ?currentSchema=public，防止找不到表
-    url: jdbc:postgresql://localhost:5433/new-exam?stringtype=unspecified&currentSchema=public
-    username: postgres
-    password: 123456
+    url: jdbc:postgresql://${EXAM_DB_HOST:localhost}:${EXAM_DB_PORT:5433}/${EXAM_DB_NAME:new-exam}?stringtype=unspecified&currentSchema=public
+    username: ${EXAM_DB_USERNAME:postgres}
+    password: ${EXAM_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   application:
     name: ai-service
+  data:
+    redis:
+      host: ${REDIS_STACK_HOST:localhost}
+      port: ${REDIS_STACK_PORT:6378}
+      password: ${REDIS_STACK_PASSWORD:}
   security:
     oauth2:
       resourceserver:
@@ -24,7 +29,7 @@ spring:
     retry:
       enabled: false  # 禁用自动重试
     zhipuai:
-      api-key: b018802065574260ae4463ecc9ad872e.FPyHyG5R8n4GKGUu
+      api-key: ${ZHIPUAI_API_KEY:}
 #      embedding:
 #        options:
 #          model: embedding-3
@@ -39,7 +44,7 @@ spring:
 
 
     ollama:
-      base-url: http://localhost:11434
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       read-timeout: 120s
 
       chat:
@@ -53,6 +58,16 @@ server:
   port: 7055
   servlet:
     context-path: /ai
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 
 mybatis-plus:
@@ -75,8 +90,8 @@ mybatis-plus:
 
 
 redis-stack:
-  port: 6378
-  password: 123456
+  port: ${REDIS_STACK_PORT:6378}
+  password: ${REDIS_STACK_PASSWORD:}
 
 seata:
   enabled: true

@@ -28,4 +28,7 @@ public interface UserOnlineExamAnswerService extends IService<UserOnlineExamAnsw
      * date 2026/1/28 18:11
     */
     List<UserErrorQuestionsVo> getUserAnswersByUserId(Long userId);
+
+    /** 读取当前用户在指定考试中的已保存答案，用于断线恢复和自动交卷。 */
+    List<UserOnlineExamAnswerDto> getAnswersByExam(Long userId, Long examId);
 }

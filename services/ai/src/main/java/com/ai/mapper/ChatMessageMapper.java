@@ -83,4 +83,15 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
             @Param("vectorJson") String vectorJson,
             @Param("limit") int limit
     );
+
+    @Select("SELECT " +
+            "  m.id AS message_id, r1.conversation_id, r2.user_id, " +
+            "  m.user_content, m.user_created_time, m.ai_content, m.ai_created_time " +
+            "FROM chat_message m " +
+            "INNER JOIN conversation_message_relation r1 ON m.id = r1.message_id " +
+            "INNER JOIN user_conversation_relation r2 ON r1.conversation_id = r2.conversation_id " +
+            "WHERE r2.user_id = #{userId} AND r1.conversation_id = #{conversationId} " +
+            "ORDER BY m.user_created_time ASC, m.id ASC")
+    List<ChatMessageComposeDto> findConversationMessages(@Param("userId") Long userId,
+                                                         @Param("conversationId") Long conversationId);
 }

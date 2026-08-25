@@ -29,6 +29,10 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
     @Resource
     VectorStore ragVectorStore;
 
+    @Qualifier("pgVectorStore")
+    @Resource
+    VectorStore pgVectorStore;
+
     @Resource
     ZhiPuRerankService zhiPuRerankService;
 
@@ -63,8 +67,8 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
         advisors.add(hybridHistorySearchAdvisor);
 
         //本地知识库搜索，并上下文重新排序advisor
-        HybridReRankAdvisor reRankAdvisor = new HybridReRankAdvisor(zhiPuRerankService, ragVectorStore, 4
-                ,aiChatComposeService);
+        HybridReRankAdvisor reRankAdvisor = new HybridReRankAdvisor(zhiPuRerankService, ragVectorStore,
+                pgVectorStore, 4, aiChatComposeService);
         advisors.add(reRankAdvisor);
 
         //信息打印advisor
@@ -120,7 +124,6 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
                 // 它主要用于给已有的 defaultAdvisors 传递运行时参数！
                 .advisors(a ->
                         a.param("userId", userId).param("conversationId", conversationIdLong)
-                                .param("ragName","西游记")
                 )
                 .call()
                 .chatClientResponse();

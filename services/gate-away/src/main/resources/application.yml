@@ -134,9 +134,9 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"   # 允许的来源，生产环境建议指定具体域名
-            allowedMethods: "*"   # 允许的方法: GET, POST...
-            allowedHeaders: "*"   # 允许的头信息
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+            allowedMethods: GET,POST,PUT,DELETE,OPTIONS
+            allowedHeaders: Authorization,Content-Type,Accept,token
 #            allowCredentials: true # 是否允许携带 Cookie
 #    sentinel:
 #      transport:

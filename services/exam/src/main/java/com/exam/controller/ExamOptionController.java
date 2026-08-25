@@ -35,7 +35,7 @@ public class ExamOptionController {
     @PostMapping("/addExam")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<String> addExam(@AuthenticationPrincipal Jwt jwt, @RequestBody ExamDto dto){
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
         dto.setCreator(userId);
@@ -85,7 +85,7 @@ public class ExamOptionController {
         String role = jwt.getClaimAsString("role");
         boolean privileged = "teacher".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role);
         if (!privileged) {
-            Long userId = jwt.getClaim("userId");
+            Long userId = currentUserId(jwt);
             if (!userApplyExamRelationService.checkExamApplyExist(userId, dto.getExamId())) {
                 return RestResponse.fail(403, "未报名该考试");
             }
@@ -162,5 +162,11 @@ public class ExamOptionController {
         sanitized.setStemImg(body.getStemImg());
         sanitized.setOptions(body.getOptions());
         return sanitized;
+    }
+
+    private Long currentUserId(Jwt jwt) {
+        if (jwt == null || jwt.getClaim("userId") == null) return null;
+        Object value = jwt.getClaim("userId");
+        return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
     }
 }

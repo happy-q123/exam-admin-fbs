@@ -19,7 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,16 +77,29 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 
     private UsernamePasswordAuthenticationToken getPrincipal(String userIdString, Jwt jwt) {
 
-        List<GrantedAuthority> authorities = Collections.emptyList();
-        String role = jwt.getClaimAsString("role");
-        if (role != null && !role.isBlank()) {
-            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.replaceFirst("^ROLE_", "")));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        Object claimAuthorities = jwt.getClaims().get("authorities");
+        if (claimAuthorities instanceof List<?> values) {
+            values.forEach(value -> addAuthority(authorities, value));
         }
+        String role = jwt.getClaimAsString("role");
+        addAuthority(authorities, role);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userIdString, null, authorities);
 
         authentication.setDetails(jwt.getClaims());
         return authentication;
+    }
+
+    private void addAuthority(List<GrantedAuthority> authorities, Object value) {
+        if (value == null || String.valueOf(value).isBlank()) {
+            return;
+        }
+        String normalized = String.valueOf(value).replaceFirst("^ROLE_", "");
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + normalized);
+        if (!authorities.contains(authority)) {
+            authorities.add(authority);
+        }
     }
 }

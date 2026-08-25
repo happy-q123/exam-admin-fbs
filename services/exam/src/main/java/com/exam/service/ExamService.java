@@ -28,6 +28,11 @@ public interface ExamService extends IService<Exam> {
     boolean insert(ExamDto dto);
 
     /**
+     * 创建考试并返回已持久化的实体，避免调用方通过标题倒查新记录。
+     */
+    Exam create(ExamDto dto);
+
+    /**
      * description 检查当前时间是否位于考试的结束时间之后。
      * 会查询redis，如果redis没有，则查询数据库，并写入redis
      * author zzq

@@ -73,9 +73,16 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
     @Override
     public boolean insert(ExamDto dto) {
-        //转为Exam对象
-        Exam exam=dto.toExamForInsert();
-        return save(exam);
+        return save(dto.toExamForInsert());
+    }
+
+    @Override
+    public Exam create(ExamDto dto) {
+        Exam exam = dto.toExamForInsert();
+        if (!save(exam)) {
+            throw new IllegalStateException("创建考试失败");
+        }
+        return exam;
     }
 
     @Override

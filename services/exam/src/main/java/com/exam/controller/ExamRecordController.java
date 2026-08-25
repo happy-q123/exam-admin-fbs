@@ -3,9 +3,12 @@ package com.exam.controller;
 import com.domain.entity.ExamRecord;
 import com.domain.annotation.Audit;
 import com.domain.entity.UserAnswer;
+import com.domain.entity.relation.ExamQuestionRelation;
 import com.domain.restful.RestResponse;
 import com.exam.service.ExamRecordService;
 import com.exam.service.ExamService;
+import com.exam.service.UserAnswerService;
+import com.exam.service.ExamQuestionRelationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -28,6 +31,12 @@ public class ExamRecordController {
 
     @Autowired
     private ExamService examService;
+
+    @Autowired
+    private UserAnswerService userAnswerService;
+
+    @Autowired
+    private ExamQuestionRelationService examQuestionRelationService;
 
     @GetMapping({"/list", "/list/{userId}"})
     public RestResponse<List<ExamRecord>> listUserRecords(@AuthenticationPrincipal Jwt jwt,
@@ -73,9 +82,68 @@ public class ExamRecordController {
     @Audit("教师批改主观题")
     @PostMapping("/gradeEssay")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
-    public RestResponse<Boolean> gradeEssay(@RequestParam Long answerId,
+    public RestResponse<Boolean> gradeEssay(@AuthenticationPrincipal Jwt jwt,
+                                             @RequestParam Long answerId,
                                              @RequestParam java.math.BigDecimal score) {
+        UserAnswer answer = userAnswerService.getById(answerId);
+        if (answer == null || answer.getRecordId() == null) {
+            return RestResponse.fail("答题记录不存在");
+        }
+        ExamRecord record = examRecordService.getById(answer.getRecordId());
+        if (record == null || !canManageExam(jwt, record.getExamId())) {
+            return RestResponse.fail(403, "无权批改该考试");
+        }
         return RestResponse.success(examRecordService.gradeEssay(answerId, score));
+    }
+
+    /**
+     * 返回待批改的主观题，供教师工作台批量处理。
+     */
+    @GetMapping("/pendingEssays")
+    @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
+    public RestResponse<List<Map<String, Object>>> pendingEssays(@AuthenticationPrincipal Jwt jwt) {
+        List<Long> managedExamIds = examService.lambdaQuery()
+                .select(com.domain.entity.Exam::getId)
+                .eq(!isAdmin(jwt), com.domain.entity.Exam::getCreator, currentUserId(jwt))
+                .list().stream().map(com.domain.entity.Exam::getId).toList();
+        if (managedExamIds.isEmpty()) return RestResponse.success(List.of());
+
+        Map<Long, ExamRecord> records = examRecordService.lambdaQuery()
+                .eq(ExamRecord::getStatus, 1)
+                .in(ExamRecord::getExamId, managedExamIds)
+                .list().stream().collect(Collectors.toMap(ExamRecord::getRecordId, item -> item));
+        if (records.isEmpty()) return RestResponse.success(List.of());
+
+        Map<Long, String> examTitles = examService.listByIds(records.values().stream()
+                        .map(ExamRecord::getExamId).distinct().toList()).stream()
+                .collect(Collectors.toMap(com.domain.entity.Exam::getId,
+                        com.domain.entity.Exam::getTitle));
+        Map<String, BigDecimal> maxScores = examQuestionRelationService.lambdaQuery()
+                .in(ExamQuestionRelation::getExamId, records.values().stream()
+                        .map(ExamRecord::getExamId).distinct().toList())
+                .list().stream().collect(Collectors.toMap(
+                        relation -> relation.getExamId() + ":" + relation.getQuestionId(),
+                        ExamQuestionRelation::getScore, (first, second) -> first));
+
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        userAnswerService.lambdaQuery().in(UserAnswer::getRecordId, records.keySet())
+                .isNull(UserAnswer::getIsCorrect).orderByAsc(UserAnswer::getCreateTime)
+                .list().forEach(answer -> {
+                    ExamRecord record = records.get(answer.getRecordId());
+                    if (record == null) return;
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("answerId", answer.getAnswerId());
+                    item.put("recordId", answer.getRecordId());
+                    item.put("examId", record.getExamId());
+                    item.put("examTitle", examTitles.get(record.getExamId()));
+                    item.put("userId", record.getUserId());
+                    item.put("questionId", answer.getQuestionId());
+                    item.put("userAnswer", answer.getUserAnswer());
+                    item.put("maxScore", maxScores.get(record.getExamId() + ":" + answer.getQuestionId()));
+                    item.put("submitTime", answer.getCreateTime());
+                    result.add(item);
+                });
+        return RestResponse.success(result);
     }
 
     @GetMapping("/analysis")
@@ -133,5 +201,23 @@ public class ExamRecordController {
         }
         Object value = jwt.getClaim("userId");
         return value instanceof Number ? ((Number) value).longValue() : Long.valueOf(String.valueOf(value));
+    }
+
+    private boolean canManageExam(Jwt jwt, Long examId) {
+        if (isAdmin(jwt)) return true;
+        Long userId = currentUserId(jwt);
+        com.domain.entity.Exam exam = examService.getById(examId);
+        return userId != null && exam != null && userId.equals(exam.getCreator());
+    }
+
+    private boolean isAdmin(Jwt jwt) {
+        if (jwt == null) return false;
+        Object roles = jwt.getClaim("roles");
+        if (roles instanceof java.util.Collection<?> collection
+                && collection.stream().map(String::valueOf).anyMatch(item -> "admin".equalsIgnoreCase(item.replace("ROLE_", "")))) {
+            return true;
+        }
+        String role = jwt.getClaimAsString("role");
+        return "admin".equalsIgnoreCase(role) || "ROLE_admin".equalsIgnoreCase(role);
     }
 }
