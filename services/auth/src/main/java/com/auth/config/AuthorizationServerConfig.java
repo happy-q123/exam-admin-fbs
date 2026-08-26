@@ -24,12 +24,17 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Configuration
 public class AuthorizationServerConfig {
-    @Value("${app.oauth2.redirect-uri:http://localhost:5173/login/callback}")
-    private String redirectUri;
+    /**
+     * 使用逗号分隔的回调地址列表。开发环境同时支持 localhost 和 127.0.0.1，
+     * 生产环境通过 OAUTH2_REDIRECT_URIS 显式覆盖，避免根据任意请求 Origin 动态放行。
+     */
+    @Value("${app.oauth2.redirect-uris:http://localhost:5173/login/callback,http://127.0.0.1:5173/login/callback}")
+    private String redirectUris;
 
     /**
      * 客户端配置暂时保持不变 (还在内存里)，先跑通用户认证再说。
@@ -37,14 +42,12 @@ public class AuthorizationServerConfig {
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.Builder registeredClientBuilder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("client-app")
                 // 浏览器端属于公共客户端，不能把 client_secret 下发到前端；使用 PKCE 保护授权码。
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("https://oauth.pstmn.io/v1/callback")
-                .redirectUri(redirectUri)
                 .scope(OidcScopes.OPENID)
                 .scope("order:read")
                 .scope("order:write")
@@ -56,10 +59,15 @@ public class AuthorizationServerConfig {
                         .accessTokenTimeToLive(Duration.ofDays(2))   // Access Token 活 2 天
                         .refreshTokenTimeToLive(Duration.ofDays(30))  // Refresh Token 活 30 天
                         .reuseRefreshTokens(false)                    // 刷新令牌轮换，降低重放风险
-                        .build())
-                .build();
+                        .build());
 
-        return new InMemoryRegisteredClientRepository(registeredClient);
+        Arrays.stream(redirectUris.split(","))
+                .map(String::trim)
+                .filter(uri -> !uri.isBlank())
+                .forEach(registeredClientBuilder::redirectUri);
+        registeredClientBuilder.redirectUri("https://oauth.pstmn.io/v1/callback");
+
+        return new InMemoryRegisteredClientRepository(registeredClientBuilder.build());
     }
 
     @Bean

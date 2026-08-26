@@ -22,7 +22,9 @@ server:
 
 app:
   oauth2:
-    redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:5173/login/callback}
+    # 多个回调地址使用逗号分隔；生产环境请通过 OAUTH2_REDIRECT_URIS 显式设置。
+    # 保留 OAUTH2_REDIRECT_URI 作为单地址配置的兼容入口。
+    redirect-uris: "${OAUTH2_REDIRECT_URIS:${OAUTH2_REDIRECT_URI:http://localhost:5173/login/callback,http://127.0.0.1:5173/login/callback}}"
 
 
 mybatis-plus:
