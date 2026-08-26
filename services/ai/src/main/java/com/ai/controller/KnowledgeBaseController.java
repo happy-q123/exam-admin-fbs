@@ -118,6 +118,12 @@ public class KnowledgeBaseController {
             metadata.put("documentId", documentId);
             metadata.put("documentKey", request.documentKey().trim());
             metadata.put("source", request.title().trim());
+            // 统一 Redis/PGVector/旧 local_rag 的来源字段，支持按知识库过滤和重排。
+            metadata.put("ragId", String.valueOf(documentId));
+            metadata.put("ragSource", request.documentKey().trim());
+            metadata.put("id", chunkKey);
+            metadata.put("messageSource", "knowledge");
+            metadata.put("createdTime", LocalDateTime.now().toString());
             if (request.courseId() != null) metadata.put("courseId", request.courseId());
             documents.add(Document.builder().id(chunkKey).text(text).metadata(metadata).build());
             fallbackRows.add(new LocalRag().setRagSource(request.documentKey().trim()).setContent(text)

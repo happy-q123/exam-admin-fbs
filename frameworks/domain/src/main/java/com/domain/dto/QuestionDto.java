@@ -86,9 +86,11 @@ public class QuestionDto extends BasePojo {
         Assert.notNull(body.getStem(), "问题题干不能为空");
         Assert.notNull(body.getCorrect(), "问题正确答案不能为空");
 
-        //如果不是简单题目，则选项不能为空
-        if (!Objects.equals(type.getValue(), QuestionTypeEnum.BriefResponse.getValue()))
-            Assert.notNull(body.getOptions(), "问题选项不能为空");
+        // 选择题需要校验选项列表，简答题与判断题无需强制提供选项
+        if (!Objects.equals(type.getValue(), QuestionTypeEnum.BriefResponse.getValue())
+                && !Objects.equals(type.getValue(), QuestionTypeEnum.Judge.getValue())) {
+            Assert.notNull(body.getOptions(), "选择题选项不能为空");
+        }
 
         //如果没有指定最后更新者，则默认为创建者
         if (latestUpdateId== null)

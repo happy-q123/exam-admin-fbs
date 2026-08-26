@@ -45,9 +45,12 @@ public class QuestionOptionController {
     @PostMapping("/insertOne")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<Map<String,String>> insertOne(@AuthenticationPrincipal Jwt jwt, @RequestBody QuestionDto dto) {
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if(userId==null)
             return RestResponse.fail("token中无userId");
+        if (dto == null) {
+            throw new IllegalArgumentException("题目内容不能为空");
+        }
         dto.setCreatorId(userId);
         Long result=questionOptionService.insert(dto);
         String message=result==null?"添加失败":"添加成功";
@@ -76,7 +79,7 @@ public class QuestionOptionController {
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<Integer> importQuestions(@AuthenticationPrincipal Jwt jwt,
                                                  @RequestPart("file") MultipartFile file) {
-        Long userId = jwt == null ? null : jwt.getClaim("userId");
+        Long userId = jwt == null ? null : currentUserId(jwt);
         if (userId == null) {
             return RestResponse.fail("token中无userId");
         }
@@ -241,5 +244,11 @@ public class QuestionOptionController {
             case "2", "difficult", "hard", "困难" -> QuestionDifficultyEnum.Difficult;
             default -> throw new IllegalArgumentException("无法识别难度：" + value);
         };
+    }
+
+    private Long currentUserId(Jwt jwt) {
+        if (jwt == null || jwt.getClaim("userId") == null) return null;
+        Object value = jwt.getClaim("userId");
+        return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
     }
 }

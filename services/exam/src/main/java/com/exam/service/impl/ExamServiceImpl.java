@@ -37,24 +37,24 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
         Exam exam = getById(examId);
         if (exam == null) {
-            throw new RuntimeException("考试不存在，不能报名。");
+            throw new IllegalStateException("考试不存在，不能报名。");
         }
         if (Boolean.FALSE.equals(exam.getStatus())) {
-            throw new RuntimeException("考试已停用，不能报名。");
+            throw new IllegalStateException("考试已停用，不能报名。");
         }
         if (exam.getBeginTime() == null || !LocalDateTime.now().isBefore(exam.getBeginTime())) {
-            throw new RuntimeException("考试报名已截止。");
+            throw new IllegalStateException("考试报名已截止。");
         }
 
         //检查用户是否已报名（虽然数据库有复合唯一索引保底，但还是查一下提高性能）
         boolean isExist=userApplyExamRelationService.checkExamApplyExist(userId, examId);
         if (isExist)
-            throw new RuntimeException("用户已报名该考试，不能重复报名。");
+            throw new IllegalStateException("用户已报名该考试，不能重复报名。");
 
         //尝试扣减剩余人数
         int reduceResult = examUserNumReduceExecutor(examId);
         if (reduceResult==0){
-            throw new RuntimeException("考试已满额，不能报名。");
+            throw new IllegalStateException("考试已满额，不能报名。");
         }
         if (reduceResult<0){
             throw new RuntimeException("考试不存在，不能报名。");
@@ -66,7 +66,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             // 并发报名时唯一索引可能先于前置查询触发，回补已扣减的名额。
             restoreExamUserNum(examId);
             //其它类型异常直接交给global了
-            throw new RuntimeException("用户已报名该考试，不能重复报名。");
+            throw new IllegalStateException("用户已报名该考试，不能重复报名。");
         }
         return true;
     }
@@ -107,11 +107,11 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 .one();
 
         if (e == null) {
-            throw new RuntimeException("未找到对应的考试信息");
+            throw new IllegalStateException("未找到对应的考试信息");
         }
 
         if (e.getBeginTime() == null || e.getDurationTime() == null || e.getDurationTime() <= 0) {
-            throw new RuntimeException("考试时间配置不完整");
+            throw new IllegalStateException("考试时间配置不完整");
         }
 
         // 计算过期时间
@@ -177,7 +177,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 .one();
 
         if (e == null)
-            throw new RuntimeException("exam对象为空");
+            throw new IllegalStateException("exam对象为空");
 
         ExamSecuritySetting setting=e.getSecuritySetting();
         if (setting == null || setting.getMaxReconnectCount() == null) {

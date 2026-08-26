@@ -31,8 +31,8 @@ public class ChatModelConfig {
     @Scope("prototype")
     ChatClient.Builder ollamaChatClientBuilder(ChatClientBuilderConfigurer configurer,
                                          @Qualifier("ollamaChatModel") ChatModel ollamaChatModel,
-                                         @Value("${OLLAMA_CHAT_MODEL:qwen3:4b}") String model,
-                                         @Value("${OLLAMA_NUM_PREDICT:512}") Integer numPredict,
+                                         @Value("${OLLAMA_CHAT_MODEL:qwen3.5:9b}") String model,
+                                         @Value("${OLLAMA_NUM_PREDICT:1024}") Integer numPredict,
                                          @Value("${OLLAMA_NUM_CTX:8192}") Integer numCtx,
                                          @Value("${OLLAMA_TEMPERATURE:0.3}") Double temperature,
                                          @Value("${OLLAMA_THINK:false}") Boolean thinking){

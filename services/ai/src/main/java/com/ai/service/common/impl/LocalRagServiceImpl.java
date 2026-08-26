@@ -16,6 +16,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class LocalRagServiceImpl extends ServiceImpl< LocalRagMapper,LocalRag> implements LocalRagService {
+    private static final double MIN_SIMILARITY = 0.55D;
     @Resource
     private OllamaEmbeddingModel embeddingModel;
     private final int defaultTopK = 10;
@@ -25,6 +26,8 @@ public class LocalRagServiceImpl extends ServiceImpl< LocalRagMapper,LocalRag> i
         String vectorStr = EmbedOptionsUtil.queryToJson(query,embeddingModel);
         int topK = limit == null ? defaultTopK : limit;
         List<LocalRag> l=getBaseMapper().searchKnowledgeWithFilter(vectorStr, sources,topK);
-        return l;
+        return l == null ? List.of() : l.stream()
+                .filter(item -> item.getSimilarity() == null || item.getSimilarity() >= MIN_SIMILARITY)
+                .toList();
     }
 }

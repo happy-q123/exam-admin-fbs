@@ -23,7 +23,7 @@ public class UserDto extends BasePojo {
     private String password;
     private String nickName;
     private UserRoleEnum role;
-    private boolean status;
+    private Boolean status;
     /** 登录时由用户服务加载的数据库权限编码。管理端列表默认不填充。 */
     private List<String> permissions;
 
@@ -57,7 +57,7 @@ public class UserDto extends BasePojo {
                 .password(password)
                 .nickName(nickName)
                 .role(role)
-                .status(status)
+                .status(status != null ? status : true)
                 .build();
     }
 }

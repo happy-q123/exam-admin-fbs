@@ -52,7 +52,7 @@ public class UserOnlineExamController {
         }
 
         if (!Objects.equals(userOnlineExamOptionsDto.getUserId(), userId))
-            throw new RuntimeException("token用户id和请求体中用户id不一致");
+            throw new IllegalArgumentException("token用户id和请求体中用户id不一致");
 
         userOnlineExamOptionsService.saveUserOnlineExamOption(userOnlineExamOptionsDto);
 
@@ -81,7 +81,7 @@ public class UserOnlineExamController {
 
     @GetMapping("/getOnlineExamAnswers")
     public RestResponse getOnlineExamAnswers(@AuthenticationPrincipal Jwt jwt,
-                                             @RequestParam Long examId) {
+                                             @RequestParam("examId") Long examId) {
         Long userId = currentUserId(jwt);
         if (userId == null) {
             return RestResponse.fail("token中无userId");
@@ -110,7 +110,7 @@ public class UserOnlineExamController {
         }
 
         if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
-            throw new RuntimeException("token用户id和请求体中用户id不一致");
+            throw new IllegalArgumentException("token用户id和请求体中用户id不一致");
         // 进入时间必须由服务端生成，不能信任浏览器提交的时间戳。
         onlineExamService.enterExam(userId, userOnlineExamAnswerDto.getExamId(), LocalDateTime.now());
         return RestResponse.success("成功");
@@ -128,7 +128,7 @@ public class UserOnlineExamController {
         }
 
         if (!Objects.equals(userOnlineExamAnswerDto.getUserId(), userId))
-            throw new RuntimeException("token用户id和请求体中用户id不一致");
+            throw new IllegalArgumentException("token用户id和请求体中用户id不一致");
 
         onlineExamService.processUserDropOnline(userOnlineExamAnswerDto);
         return RestResponse.success("成功");

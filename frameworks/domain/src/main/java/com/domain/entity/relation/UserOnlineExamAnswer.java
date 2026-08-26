@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.domain.entity.attribute.UserOnlineExamQuestionAnswerBody;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,21 +26,25 @@ public class UserOnlineExamAnswer {
      */
     //ASSIGN_ID 会自动触发自定义的 CustomIdGenerator
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     
     /**
      * 用户ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
     
     /**
      * 考试ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long examId;
     
     /**
      * 问题ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long questionId;
     
     /**

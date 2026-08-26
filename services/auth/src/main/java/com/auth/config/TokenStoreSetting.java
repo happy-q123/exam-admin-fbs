@@ -34,7 +34,8 @@ public class TokenStoreSetting {
                 // (因为如果是 Client Credentials 模式，principal 是 String 类型的 clientId)
                 if (principal.getPrincipal() instanceof CustomSecurityUser user) {
                     // 往 Token 的 payload (载荷) 里添加字段
-                    context.getClaims().claim("userId", user.getId());
+                    // 以字符串写入，避免雪花 ID 超过 JS Number 精度（2^53）后前端解析丢失精度
+                    context.getClaims().claim("userId", String.valueOf(user.getId()));
                     List<String> authorities = user.getAuthorities().stream()
                             .map(authority -> authority.getAuthority())
                             .distinct()

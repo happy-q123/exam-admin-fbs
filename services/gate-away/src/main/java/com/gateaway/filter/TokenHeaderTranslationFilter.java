@@ -22,10 +22,13 @@ public class TokenHeaderTranslationFilter implements WebFilter {
 
         String authHeader = request.getHeaders().getFirst("Authorization");
         String customToken = request.getHeaders().getFirst("token");
+        if (customToken == null || customToken.trim().isEmpty()) {
+            customToken = request.getQueryParams().getFirst("token");
+        }
 
         if ((authHeader == null || authHeader.trim().isEmpty()) && (customToken != null && !customToken.trim().isEmpty())) {
             ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("Authorization", "Bearer " + customToken)
+                    .header("Authorization", "Bearer " + customToken.trim())
                     .build();
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
         }

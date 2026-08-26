@@ -10,8 +10,10 @@ import com.domain.restful.RestResponse;
 import com.exam.service.ExamQuestionRelationService;
 import com.exam.service.ExamService;
 import com.exam.service.QuestionService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,7 +46,7 @@ public class ExamManagementController {
         this.questionService = questionService;
     }
 
-    @GetMapping("/exam/manage/list")
+    @GetMapping("/manage/list")
     public RestResponse<List<Exam>> list(@AuthenticationPrincipal Jwt jwt) {
         Long userId = currentUserId(jwt);
         boolean admin = isAdmin(jwt);
@@ -55,21 +57,34 @@ public class ExamManagementController {
     }
 
     @Audit("创建考试")
-    @PostMapping("/exam/manage")
+    @Transactional(rollbackFor = Exception.class)
+    @PostMapping("/manage")
     public RestResponse<Exam> create(@AuthenticationPrincipal Jwt jwt, @RequestBody ExamDto dto) {
         if (dto == null) {
-            return RestResponse.fail("考试配置不能为空");
+            throw new IllegalArgumentException("考试配置不能为空");
         }
         Long userId = currentUserId(jwt);
         dto.setCreator(userId);
-        return RestResponse.success(examService.create(dto));
+        Exam exam = examService.create(dto);
+        if (dto.getQuestions() != null) {
+            List<ExamQuestionRelation> entities = buildQuestionEntities(exam, dto.getQuestions());
+            if (entities.isEmpty()) {
+                throw new IllegalArgumentException("发布考试至少需要配置一道题目");
+            }
+            relationService.saveBatch(entities);
+        }
+        return RestResponse.success(exam);
     }
 
     @Audit("修改考试配置")
-    @PutMapping("/exam/manage/{examId}")
+    @CacheEvict(value = "exam_security_cache", key = "#examId")
+    @PutMapping("/manage/{examId}")
     public RestResponse<Boolean> update(@AuthenticationPrincipal Jwt jwt,
-                                        @PathVariable Long examId,
+                                        @PathVariable("examId") Long examId,
                                         @RequestBody ExamDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("考试配置不能为空");
+        }
         Exam exam = getOwnedExam(jwt, examId);
         if (exam.getBeginTime() != null && !LocalDateTime.now().isBefore(exam.getBeginTime())) {
             throw new IllegalStateException("考试开始后不能修改考试配置");
@@ -86,17 +101,17 @@ public class ExamManagementController {
     }
 
     @Audit("归档考试")
-    @DeleteMapping("/exam/manage/{examId}")
-    public RestResponse<Boolean> archive(@AuthenticationPrincipal Jwt jwt, @PathVariable Long examId) {
+    @DeleteMapping("/manage/{examId}")
+    public RestResponse<Boolean> archive(@AuthenticationPrincipal Jwt jwt, @PathVariable("examId") Long examId) {
         Exam exam = getOwnedExam(jwt, examId);
         exam.setStatus(false);
         exam.setLatestUpdateTime(LocalDateTime.now());
         return RestResponse.success(examService.updateById(exam));
     }
 
-    @GetMapping("/exam/manage/{examId}/questions")
+    @GetMapping("/manage/{examId}/questions")
     public RestResponse<List<ExamQuestionRelationDto>> listQuestions(@AuthenticationPrincipal Jwt jwt,
-                                                                       @PathVariable Long examId) {
+                                                                       @PathVariable("examId") Long examId) {
         getOwnedExam(jwt, examId);
         return RestResponse.success(relationService.lambdaQuery()
                 .eq(ExamQuestionRelation::getExamId, examId)
@@ -106,17 +121,24 @@ public class ExamManagementController {
 
     @Audit("更新考试组卷")
     @Transactional(rollbackFor = Exception.class)
-    @PostMapping("/exam/manage/{examId}/questions")
+    @PostMapping("/manage/{examId}/questions")
     public RestResponse<Boolean> replaceQuestions(@AuthenticationPrincipal Jwt jwt,
-                                                    @PathVariable Long examId,
+                                                    @PathVariable("examId") Long examId,
                                                     @RequestBody List<ExamQuestionRelationDto> questions) {
         Exam exam = getOwnedExam(jwt, examId);
         if (exam.getBeginTime() != null && !LocalDateTime.now().isBefore(exam.getBeginTime())) {
             throw new IllegalStateException("考试开始后不能修改组卷");
         }
+        List<ExamQuestionRelation> entities = buildQuestionEntities(exam, questions);
         relationService.remove(new LambdaQueryWrapper<ExamQuestionRelation>()
                 .eq(ExamQuestionRelation::getExamId, examId));
-        if (questions == null || questions.isEmpty()) return RestResponse.success(true);
+        if (entities.isEmpty()) return RestResponse.success(true);
+        return RestResponse.success(relationService.saveBatch(entities));
+    }
+
+    private List<ExamQuestionRelation> buildQuestionEntities(Exam exam,
+                                                              List<ExamQuestionRelationDto> questions) {
+        if (questions == null || questions.isEmpty()) return List.of();
         Set<Long> questionIds = questions.stream().filter(item -> item != null && item.getQuestionId() != null)
                 .map(ExamQuestionRelationDto::getQuestionId).collect(Collectors.toSet());
         if (questionIds.size() != questions.size()) {
@@ -138,7 +160,7 @@ public class ExamManagementController {
                 throw new IllegalArgumentException("组卷题号必须为正整数且不能重复");
             }
             return ExamQuestionRelation.builder()
-                    .examId(examId)
+                    .examId(exam.getId())
                     .questionId(item.getQuestionId())
                     .score(score)
                     .seq(sequence)
@@ -150,14 +172,14 @@ public class ExamManagementController {
         if (exam.getPassScore() != null && exam.getPassScore().compareTo(totalScore) > 0) {
             throw new IllegalArgumentException("及格分不能高于试卷总分（当前总分：" + totalScore.stripTrailingZeros().toPlainString() + "）");
         }
-        return RestResponse.success(relationService.saveBatch(entities));
+        return entities;
     }
 
     private Exam getOwnedExam(Jwt jwt, Long examId) {
         Exam exam = examService.getById(examId);
-        if (exam == null) throw new IllegalArgumentException("考试不存在");
+        if (exam == null) throw new java.util.NoSuchElementException("考试不存在");
         if (!isAdmin(jwt) && !currentUserId(jwt).equals(exam.getCreator())) {
-            throw new IllegalArgumentException("无权操作该考试");
+            throw new AccessDeniedException("无权操作该考试");
         }
         return exam;
     }

@@ -76,23 +76,29 @@ public class WebSocketEventListener {
      * author zzq
      * date 2026/1/8 15:54
      */
-    private void processUserDropOnline(String userId,Principal principal) {
-        String key=OnlineExamEnum.Is_Examing.buildKey(userId);
+    private void processUserDropOnline(String userId, Principal principal) {
+        String key = OnlineExamEnum.Is_Examing.buildKey(userId);
 
-        String examIdV=redisTemplate.opsForValue().get(key);
-        if (examIdV==null){
+        String examIdV = redisTemplate.opsForValue().get(key);
+        if (examIdV == null) {
             return;
         }
-        Long examId=Long.valueOf(examIdV);
-        UserOnlineExamOptionsDto dto=UserOnlineExamOptionsDto.builder()
+        Long examId = Long.valueOf(examIdV);
+        UserOnlineExamOptionsDto dto = UserOnlineExamOptionsDto.builder()
                 .userId(Long.valueOf(userId))
                 .examId(examId)
                 .optionType(UserOnlineExamOptionTypeEnum.Exit)
-                .optionTime(LocalDateTime.now()).build();
-        // 【关键代码】手动设置 SecurityContext，让 Feign 拦截器能读到
-        if (principal instanceof UsernamePasswordAuthenticationToken) {
-            SecurityContextHolder.getContext().setAuthentication((UsernamePasswordAuthenticationToken) principal);
+                .optionTime(LocalDateTime.now())
+                .build();
+        try {
+            if (principal instanceof UsernamePasswordAuthenticationToken) {
+                SecurityContextHolder.getContext().setAuthentication((UsernamePasswordAuthenticationToken) principal);
+            }
+            onlineExamFeignClient.exitOnlineExam(dto);
+        } catch (Exception e) {
+            log.error("处理用户离线退考记录异常: {}", e.getMessage());
+        } finally {
+            SecurityContextHolder.clearContext();
         }
-        onlineExamFeignClient.exitOnlineExam(dto);
     }
 }

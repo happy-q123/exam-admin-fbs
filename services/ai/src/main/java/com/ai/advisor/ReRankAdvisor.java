@@ -67,41 +67,37 @@ public class ReRankAdvisor implements BaseAdvisor {
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
         String query = chatClientRequest.prompt().getUserMessage().getText();
-        if(query.isBlank())
+        if (query == null || query.isBlank()) {
             return chatClientRequest;
+        }
 
-        //若自始至终没有定义搜索配置，则进行初始化
-        processNullSearchRequest(query);
+        SearchRequest effectiveSearchRequest = this.searchRequest != null
+                ? SearchRequest.from(this.searchRequest).query(query).build()
+                : buildDefaultSearchRequest(query);
 
-//        if (searchRequest==null){
-//            processNullSearchRequest(query);
-//        }
-        //在本地知识库进行搜索，搜索的目标是本地知识内容，而不是历史对话内容。
-        //历史对话内容由HistorySearchAdvisor处理。
-        List<Document> documents=null;
+        List<Document> documents = null;
         try {
-            documents = searchFromDatabase(searchRequest);
-        }catch (Exception e){
-            log.error("redis无法使用，将取消rag增强！！！");
+            documents = searchFromDatabase(effectiveSearchRequest);
+        } catch (Exception e) {
+            log.error("向量检索异常，取消增强: {}", e.getMessage());
             return chatClientRequest;
         }
         filterDocument();
-        if (documents==null||documents.isEmpty())
+        if (documents == null || documents.isEmpty()) {
             return chatClientRequest;
+        }
 
         List<Result> rerankedContext = rerank(query, documents);
         chatClientRequest.context().put("reranked-context", rerankedContext);
-        String context=composeContext(rerankedContext);
+        String context = composeContext(rerankedContext);
 
-        String finalUserMessage = "用户问题："+query+"\n\n"+context;
-        ChatClientRequest processedChatClientRequest = chatClientRequest.mutate().
-                prompt(chatClientRequest.prompt().augmentUserMessage(finalUserMessage))
+        String finalUserMessage = "用户问题：" + query + "\n\n" + context;
+        return chatClientRequest.mutate()
+                .prompt(chatClientRequest.prompt().augmentUserMessage(finalUserMessage))
                 .build();
-
-        return processedChatClientRequest;
     }
 
-    public String composeContext( List<Result> results) {
+    public String composeContext(List<Result> results) {
         String contextString = results.stream()
                 .map(r -> String.format("""
         [得分: %.4f\n内容: %s]
@@ -111,12 +107,10 @@ public class ReRankAdvisor implements BaseAdvisor {
         return this.rerankPromptTemplate.render(map);
     }
 
-    private void processNullSearchRequest(String query) {
+    private SearchRequest buildDefaultSearchRequest(String query) {
         FilterExpressionBuilder b = new FilterExpressionBuilder();
-
-        //仅在messageSource字段为knowledge的文档进行搜索
-        Filter.Expression filter = b.eq("messageSource", "knowledge").build();
-        searchRequest = SearchRequest.builder()
+        Filter.Expression filter = b.or(b.eq("ragSource", "knowledge"), b.eq("messageSource", "knowledge")).build();
+        return SearchRequest.builder()
                 .query(query)
                 .topK(5)
                 .filterExpression(filter)

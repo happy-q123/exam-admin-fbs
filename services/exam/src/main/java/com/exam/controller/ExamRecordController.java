@@ -40,7 +40,7 @@ public class ExamRecordController {
 
     @GetMapping({"/list", "/list/{userId}"})
     public RestResponse<List<ExamRecord>> listUserRecords(@AuthenticationPrincipal Jwt jwt,
-                                                          @PathVariable(required = false) Long userId) {
+                                                          @PathVariable(value = "userId", required = false) Long userId) {
         Long currentUserId = currentUserId(jwt);
         if (currentUserId == null) {
             return RestResponse.fail("token中无userId");
@@ -68,7 +68,7 @@ public class ExamRecordController {
     @Audit("学生提交试卷")
     @PostMapping("/submit")
     public RestResponse<Void> submitExam(@AuthenticationPrincipal Jwt jwt,
-                                         @RequestParam Long examId,
+                                         @RequestParam("examId") Long examId,
                                          @RequestBody List<UserAnswer> userAnswers) {
         Long userId = currentUserId(jwt);
         if (userId == null) {
@@ -83,8 +83,8 @@ public class ExamRecordController {
     @PostMapping("/gradeEssay")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<Boolean> gradeEssay(@AuthenticationPrincipal Jwt jwt,
-                                             @RequestParam Long answerId,
-                                             @RequestParam java.math.BigDecimal score) {
+                                             @RequestParam("answerId") Long answerId,
+                                             @RequestParam("score") java.math.BigDecimal score) {
         UserAnswer answer = userAnswerService.getById(answerId);
         if (answer == null || answer.getRecordId() == null) {
             return RestResponse.fail("答题记录不存在");
@@ -149,7 +149,7 @@ public class ExamRecordController {
     @GetMapping("/analysis")
     @PreAuthorize("@roleGuard.isTeacherOrAdmin(authentication)")
     public RestResponse<Map<String, Object>> analysis(@AuthenticationPrincipal Jwt jwt,
-                                                      @RequestParam(required = false) Long examId) {
+                                                      @RequestParam(value = "examId", required = false) Long examId) {
         Long userId = currentUserId(jwt);
         if (userId == null) {
             return RestResponse.fail("token中无userId");

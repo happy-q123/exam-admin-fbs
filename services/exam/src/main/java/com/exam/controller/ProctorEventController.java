@@ -29,7 +29,7 @@ public class ProctorEventController {
 
     @GetMapping("/events")
     public RestResponse<List<ProctorEvent>> events(@AuthenticationPrincipal Jwt jwt,
-                                                   @RequestParam Long examId) {
+                                                   @RequestParam("examId") Long examId) {
         Exam exam = examService.getById(examId);
         if (exam == null) throw new IllegalArgumentException("考试不存在");
         if (!isAdmin(jwt) && !currentUserId(jwt).equals(exam.getCreator())) {

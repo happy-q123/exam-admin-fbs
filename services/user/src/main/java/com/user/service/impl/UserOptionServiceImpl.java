@@ -40,6 +40,10 @@ public class UserOptionServiceImpl extends ServiceImpl<UserMapper, User> impleme
     @Override
     public boolean registerUser(UserDto userDto) {
 
+        if (userDto == null) {
+            throw new IllegalArgumentException("注册信息不能为空");
+        }
+
         Assert.hasText(userDto.getUsername(), "用户名不能为空");
         Assert.hasText(userDto.getPassword(), "密码不能为空");
         //生成一个随机匿名
@@ -57,7 +61,7 @@ public class UserOptionServiceImpl extends ServiceImpl<UserMapper, User> impleme
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             result=save(user);
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException("用户已存在，不可重复注册");
+            throw new IllegalStateException("用户已存在，不可重复注册");
         }
         return result;
     }
@@ -65,7 +69,7 @@ public class UserOptionServiceImpl extends ServiceImpl<UserMapper, User> impleme
     @Override
     public UserDto getUserForLogin(String username) {
         if (StringUtils.isBlank(username))
-            throw new RuntimeException("用户名不能为空");
+            throw new IllegalArgumentException("用户名不能为空");
 
         //根据用户名查询用户表的部分字段
         User user= lambdaQuery().eq(User::getUsername, username)

@@ -29,13 +29,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // 2. 配置权限规则
+                // 配置权限规则
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/ws/proctor/**").permitAll()
                         .requestMatchers(
                                 "/doc.html",
                                 "/webjars/**",
-                                "/v3/api-docs/**",       // 最重要：这是接口数据源
+                                "/v3/api-docs/**",       // 接口文档数据源
                                 "/swagger-resources/**",
                                 "/favicon.ico"
                         ).permitAll()

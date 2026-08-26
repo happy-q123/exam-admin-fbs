@@ -71,6 +71,11 @@
             <artifactId>domain</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <!--        MyBatis-Plus 分页拦截器依赖的 SQL 解析模块-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

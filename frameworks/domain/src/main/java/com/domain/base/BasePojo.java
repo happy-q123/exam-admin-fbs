@@ -26,8 +26,8 @@ public class BasePojo {
 
     public <T> Page<T> buildPage() {
         Page<T> page = new Page<>(this.current, this.size);
-        // 如果前端传了排序字段，就加上排序规则
-        if (StringUtils.hasText(orderByColumn)) {
+        // 校验排序字段是否为合法标识符，防止拼接非法字符
+        if (StringUtils.hasText(orderByColumn) && orderByColumn.matches("^[a-zA-Z0-9_]{1,64}$")) {
             OrderItem orderItem = "asc".equalsIgnoreCase(isAsc)
                     ? OrderItem.asc(orderByColumn)
                     : OrderItem.desc(orderByColumn);

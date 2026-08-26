@@ -27,13 +27,13 @@ public class UserOnlineExamOptionsServiceImpl extends ServiceImpl<UserOnlineExam
         Boolean isOnline= stringRedisTemplate.opsForSet().isMember(USER_ONLINE_KEY, userId);
 
         if(Boolean.FALSE.equals(isOnline)){
-            throw new RuntimeException("用户不在线");
+            throw new IllegalStateException("用户不在线");
         }
 
         try {
             this.save(userOnlineExamOptions);
         }catch (DuplicateKeyException e){
-            throw new RuntimeException("已经提交过用户行为");
+            throw new IllegalStateException("已经提交过用户行为");
         }
     }
 
@@ -48,7 +48,7 @@ public class UserOnlineExamOptionsServiceImpl extends ServiceImpl<UserOnlineExam
                 .eq(UserOnlineExamOptions::getOptionType, UserOnlineExamOptionTypeEnum.Enter)
                 .count();
         if (count == null)
-            throw new RuntimeException("count为空");
+            throw new IllegalStateException("进入考试次数查询失败");
 
         return count;
     }

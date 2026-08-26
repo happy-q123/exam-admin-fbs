@@ -23,7 +23,6 @@ public class VectorStoreConfig {
 
     @Value("${redis-stack.password:}")
     private String password;
-//    RedisVectorStore
 
     @Bean
     public RedisVectorStore messageVectorStore(@Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel, JedisConnectionFactory jedisConnectionFactory) {
@@ -98,19 +97,24 @@ public class VectorStoreConfig {
 
         // 创建 JedisPooled (使用 HostAndPort + Config)
         JedisPooled jedisPooled = new JedisPooled(
-//                new redis.clients.jedis.HostAndPort(jedisConnectionFactory.getHostName(), jedisConnectionFactory.getPort()),
                 new redis.clients.jedis.HostAndPort(jedisConnectionFactory.getHostName(), this.redisStackPort),
                 configBuilder.build()
         );
 
-        // 2. 你的自定义 Metadata 逻辑
+        // 自定义 Metadata 字段
         List<RedisVectorStore.MetadataField> metadataFields = List.of(
                 RedisVectorStore.MetadataField.tag("createdTime"),
                 RedisVectorStore.MetadataField.tag("ragId"),
-                RedisVectorStore.MetadataField.tag("messageSource")//
+                RedisVectorStore.MetadataField.tag("id"),
+                RedisVectorStore.MetadataField.tag("ragSource"),
+                RedisVectorStore.MetadataField.tag("messageSource"),
+                RedisVectorStore.MetadataField.tag("documentId"),
+                RedisVectorStore.MetadataField.tag("documentKey"),
+                RedisVectorStore.MetadataField.tag("source"),
+                RedisVectorStore.MetadataField.tag("courseId")
         );
 
-        // 3. 构建 Store
+        // 构建 Redis 向量存储
         return RedisVectorStore.builder(jedisPooled, embeddingModel)
                 .indexName("exam-fbs-rag")
                 .metadataFields(metadataFields)

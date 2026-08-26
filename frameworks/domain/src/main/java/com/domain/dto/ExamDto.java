@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.util.List;
 
 
 /**
@@ -67,6 +68,11 @@ public class ExamDto extends BasePojo {
     private Long creator;
 
     private BigDecimal passScore;
+
+    /**
+     * 可选的原子组卷内容。考试管理前端在发布时随考试配置一并提交，避免先创建考试、后组卷造成半成功状态。
+     */
+    private List<ExamQuestionRelationDto> questions;
 
     public Exam toExamForInsert(){
         Assert.isTrue(StringUtils.hasText(title), "考试标题不能为空");

@@ -33,6 +33,13 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
     @Resource
     VectorStore pgVectorStore;
 
+    /**
+     * 错题助手使用的答案生成客户端不挂载业务工具，避免模型把工具说明或调用过程
+     * 当成面向考生的回答。它仍然保留历史检索、RAG 和重排 Advisor。
+     */
+    private ChatClient structuredAnswerChatClient;
+    private HybridHistorySearchAdvisor historySearchAdvisor;
+
     @Resource
     ZhiPuRerankService zhiPuRerankService;
 
@@ -64,6 +71,7 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
                 .order(2)
 //                .persistAndFilter("conversationId", "messageSource","userId")
                 .build();
+        this.historySearchAdvisor = hybridHistorySearchAdvisor;
         advisors.add(hybridHistorySearchAdvisor);
 
         //本地知识库搜索，并上下文重新排序advisor
@@ -92,8 +100,9 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
             builder.defaultAdvisors(this.advisors);
         }
 
+        this.structuredAnswerChatClient = builder.clone().build();
         //构造tool
-        this.chatClient = builder.defaultToolNames(
+        this.chatClient = builder.clone().defaultToolNames(
                         "userErrorQuestionsFunction",
                         "timeFunction",
                         "userIdFunction")
@@ -127,6 +136,32 @@ public class HybridCacheMemoryChatAgent extends AbstractAgentService {
                 )
                 .call()
                 .chatClientResponse();
+    }
+
+    /**
+     * 生成错题助手的结构化最终答案。memoryUserText 只用于历史检索和记忆落库，
+     * 避免把整段系统提示和题目 JSON 当成下一轮用户问题。
+     */
+    public Object executeStructured(String prompt, String userId, String conversationId, String memoryUserText) {
+        Long conversationIdLong = Long.valueOf(conversationId);
+        return structuredAnswerChatClient.prompt(prompt)
+                .advisors(a -> a.param("userId", userId)
+                        .param("conversationId", conversationIdLong)
+                        .param("structuredAnswer", true)
+                        .param("memoryUserText", memoryUserText)
+                        .param("ragQuery", memoryUserText)
+                        .param("deferMemorySave", true))
+                .call()
+                .chatClientResponse();
+    }
+
+    /**
+     * 质量 Agent 通过后才提交一次错题会话记忆，避免答案 Agent 的重试结果重复写入历史。
+     */
+    public void commitStructuredAnswer(String userId, String conversationId, String userText, String aiContent) {
+        if (historySearchAdvisor != null) {
+            historySearchAdvisor.saveStructuredAnswer(userId, conversationId, userText, aiContent);
+        }
     }
 
     @Override

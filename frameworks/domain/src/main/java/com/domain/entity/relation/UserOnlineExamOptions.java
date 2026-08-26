@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.domain.enums.UserOnlineExamOptionTypeEnum;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,16 +23,19 @@ public class UserOnlineExamOptions {
      * 主键ID，使用 ASSIGN_ID 策略，会自动触发自定义的 CustomIdGenerator
      */
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
      * 用户ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     /**
      * 考试ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long examId;
 
     /**

@@ -47,7 +47,9 @@ public class UserController {
         if (dto.getNickName() != null) {
             user.setNickName(dto.getNickName());
         }
-        user.setStatus(dto.isStatus());
+        if (dto.getStatus() != null) {
+            user.setStatus(dto.getStatus());
+        }
         return RestResponse.success(userOptionService.updateById(user));
     }
 

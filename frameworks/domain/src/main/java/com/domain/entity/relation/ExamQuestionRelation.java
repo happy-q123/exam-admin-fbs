@@ -2,6 +2,8 @@ package com.domain.entity.relation;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,18 +23,21 @@ public class ExamQuestionRelation {
 
     /**
      * id
-     */
+    */
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
      * 考试id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long examId;
 
     /**
      * 问题id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long questionId;
 
     /**

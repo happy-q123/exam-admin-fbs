@@ -3,6 +3,8 @@ package com.domain.entity.relation;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,12 +26,15 @@ public class UserApplyExamRelation {
 
     //ASSIGN_ID 会自动触发自定义的 CustomIdGenerator
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     //考试id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long examId;
 
     //用户id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     //报名时间

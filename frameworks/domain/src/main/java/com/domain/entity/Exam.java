@@ -3,6 +3,8 @@ package com.domain.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.domain.entity.attribute.ExamSecuritySetting;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 public class Exam {
     //ASSIGN_ID 会自动触发自定义的 CustomIdGenerator
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     //考试标题
@@ -53,6 +56,7 @@ public class Exam {
     private Integer restUserNum;
 
     // 考试的创建者id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long creator;
 
     // 及格分数

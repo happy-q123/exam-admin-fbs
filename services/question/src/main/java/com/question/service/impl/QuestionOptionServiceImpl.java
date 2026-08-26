@@ -21,19 +21,22 @@ public class QuestionOptionServiceImpl extends ServiceImpl<QuestionMapper, Quest
 
     @Override
     public Long insert(QuestionDto questionDto) {
+        if (questionDto == null) {
+            throw new IllegalArgumentException("题目内容不能为空");
+        }
         Question question = questionDto.buildForInsert();
         try {
             //成功返回生成的id，失败返回null
             return saveOrUpdate(question)?question.getId():null;
         }catch (DuplicateKeyException e){
-            throw new RuntimeException("问题已存在");
+            throw new IllegalArgumentException("问题已存在", e);
         }
     }
 
     @Override
     public List<QuestionDto> getListByIds(List<Long> idList) {
         if(idList==null||idList.isEmpty())
-            throw new RuntimeException("idList为空");
+            throw new IllegalArgumentException("idList不能为空");
         List<Question> questionList = listByIds(idList);
         List<QuestionDto>questionDtoList=QuestionDto.toDtoList(questionList);
         Map<Long, QuestionDto> questionMap = questionDtoList.stream()

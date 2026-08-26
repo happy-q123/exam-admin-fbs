@@ -10,4 +10,5 @@ import com.domain.entity.Role;
  * @date 2026-06-11
  */
 public interface RoleService extends IService<Role> {
+    boolean assignPermissions(Long roleId, java.util.List<Long> permissionIds);
 }

@@ -8,17 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.web.socket.server.standard.SpringConfigurator;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@Slf4j
 @Component
-@ServerEndpoint(value = "/ws/proctor/{examId}/{role}/{userId}", configurator = SpringConfigurator.class)
+@ServerEndpoint(value = "/ws/proctor/{examId}/{role}/{userId}", configurator = SpringEndpointConfigurator.class)
 public class ProctorWebSocketServer {
 
     // 存储某个考试的监考老师的 Session (考场ID -> 老师们的会话集合)
@@ -120,9 +121,9 @@ public class ProctorWebSocketServer {
                 for (Session tSession : teachers) {
                     if (tSession.isOpen()) {
                         try {
-                            tSession.getBasicRemote().sendText(forwardMsg);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            tSession.getAsyncRemote().sendText(forwardMsg);
+                        } catch (Exception e) {
+                            log.error("转发监考视频帧异常: {}", e.getMessage());
                         }
                     }
                 }

@@ -6,6 +6,8 @@ import com.domain.dto.QuestionDto;
 import com.domain.entity.attribute.QuestionBody;
 import com.domain.enums.QuestionDifficultyEnum;
 import com.domain.enums.QuestionTypeEnum;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +29,7 @@ import java.util.List;
 @TableName(value = "question", autoResultMap = true)
 public class Question {
     @TableId(type = IdType.ASSIGN_ID)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -42,6 +45,7 @@ public class Question {
     /**
      * 创建人id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long creatorId;
 
     /**
@@ -73,6 +77,7 @@ public class Question {
     private LocalDateTime latestUpdateTime;
 
     //最后更新者的id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long latestUpdateId;
 
 }

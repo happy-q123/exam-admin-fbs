@@ -17,7 +17,9 @@ public class OptionController {
 
         // 2. 获取我们在 Auth Server 里自定义塞进去的 "userId"
         // 注意：getClaim 的返回值是 Object，可能需要强转或 toString
-        Long userId = jwt.getClaim("userId");
+        Object userIdClaim = jwt.getClaim("userId");
+        Long userId = userIdClaim instanceof Number number ? number.longValue()
+                : (userIdClaim == null ? null : Long.valueOf(String.valueOf(userIdClaim)));
 
         // 3. 获取其他信息 (比如 Token ID, 过期时间等)
         String tokenId = jwt.getId();

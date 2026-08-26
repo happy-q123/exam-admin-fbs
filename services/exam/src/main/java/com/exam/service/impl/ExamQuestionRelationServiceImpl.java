@@ -29,7 +29,7 @@ public class ExamQuestionRelationServiceImpl extends ServiceImpl<ExamQuestionRel
     @Override
     public Page<ExamQuestionRelationVo> getExamQuestionsByExamId(ExamQuestionRelationDto dto) {
         if (dto == null|| dto.getExamId() == null)
-            throw new RuntimeException("参数不可为空");
+            throw new IllegalArgumentException("考试ID不能为空");
 
         // 准备分页参数
         Page<ExamQuestionRelation> pageParam = dto.buildPage();

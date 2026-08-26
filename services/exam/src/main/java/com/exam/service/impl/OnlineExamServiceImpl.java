@@ -43,7 +43,7 @@ public class OnlineExamServiceImpl implements OnlineExamService {
     public void enterExam(Long userId, Long examId, LocalDateTime acquireTime) {
 
         if (!isUserOnline(String.valueOf(userId)))
-            throw new RuntimeException("用户socket连接处于离线状态！");
+            throw new IllegalStateException("用户socket连接处于离线状态！");
 
         if (acquireTime == null){
             log.warn("acquireTime为null，将使用系统时间");
@@ -52,28 +52,30 @@ public class OnlineExamServiceImpl implements OnlineExamService {
 
         boolean isApply=userApplyExamRelationService.checkExamApplyExist(userId, examId);
         if (!isApply)
-            throw new RuntimeException("未报名该考试");
+            throw new IllegalStateException("未报名该考试");
 
         com.domain.entity.Exam exam = examService.getById(examId);
         if (exam == null) {
-            throw new RuntimeException("考试不存在");
+            throw new IllegalStateException("考试不存在");
         }
         if (Boolean.FALSE.equals(exam.getStatus())) {
-            throw new RuntimeException("考试已停用");
+            throw new IllegalStateException("考试已停用");
         }
         if (exam.getBeginTime() == null || exam.getDurationTime() == null || exam.getDurationTime() <= 0) {
-            throw new RuntimeException("考试时间配置不完整");
+            throw new IllegalStateException("考试时间配置不完整");
         }
         if (acquireTime.isBefore(exam.getBeginTime())) {
-            throw new RuntimeException("考试尚未开始");
+            throw new IllegalStateException("考试尚未开始");
         }
 
-        boolean isExpire=examService.currentIsByondExamExpireTime(examId, acquireTime);
-        if(isExpire)
-            throw new RuntimeException("考试已过期");
+        boolean isExpire = examService.currentIsByondExamExpireTime(examId, acquireTime);
+        if (isExpire) {
+            throw new IllegalStateException("考试已过期");
+        }
 
-        if(checkUserEnterExamCountIsMax(userId, examId))
-            throw new RuntimeException("已超过最大进入次数");
+        if (checkUserEnterExamCountIsMax(userId, examId)) {
+            throw new IllegalStateException("已超过最大进入次数");
+        }
 
         UserOnlineExamOptions userOnlineExamOptions = UserOnlineExamOptions.builder()
                 .userId(userId)
@@ -82,35 +84,36 @@ public class OnlineExamServiceImpl implements OnlineExamService {
                 .optionTime(acquireTime)
                 .build();
 
-        //检查用户是否进入过某个正在进行的考试
-        String examingKey= OnlineExamEnum.Is_Examing.buildKey(String.valueOf(userId));
-        String value= stringRedisTemplate.opsForValue().get(examingKey);
+        // 检查用户是否处于其他考试中
+        String examingKey = OnlineExamEnum.Is_Examing.buildKey(String.valueOf(userId));
+        String value = stringRedisTemplate.opsForValue().get(examingKey);
 
-        if(value==null){
-            //如果没有，说明用户当前处于空闲状态，可以参加目标考试。
-            //查询目标考试的结束时间。
-            String examExpireTimeKey=OnlineExamEnum.Exam_Expire_Time.buildKey(String.valueOf(examId));
-            String examExpireTimeValue=stringRedisTemplate.opsForValue().get(examExpireTimeKey);
-            if (examExpireTimeValue==null)
-                throw new RuntimeException("无法从缓存查询到考试持续时间");
+        if (value == null) {
+            String examExpireTimeKey = OnlineExamEnum.Exam_Expire_Time.buildKey(String.valueOf(examId));
+            String examExpireTimeValue = stringRedisTemplate.opsForValue().get(examExpireTimeKey);
+            LocalDateTime examExpireTime;
+            if (examExpireTimeValue != null) {
+                examExpireTime = LocalDateTime.parse(examExpireTimeValue);
+            } else {
+                examExpireTime = exam.getBeginTime().plusMinutes(exam.getDurationTime());
+                long secondsUntilExpire = java.time.Duration.between(LocalDateTime.now(), examExpireTime).getSeconds();
+                if (secondsUntilExpire > 0) {
+                    stringRedisTemplate.opsForValue().set(examExpireTimeKey, examExpireTime.toString(), secondsUntilExpire, TimeUnit.SECONDS);
+                }
+            }
 
-            LocalDateTime examExpireTime=LocalDateTime.parse(examExpireTimeValue);
-            // 计算考试持续时间（分钟）
             long remainingSeconds = java.time.Duration.between(acquireTime, examExpireTime).getSeconds();
             if (remainingSeconds <= 0) {
-                throw new RuntimeException("考试已结束");
+                throw new IllegalStateException("考试已结束");
             }
-            // 将用户标记为正在考试状态，并设置过期时间为剩余考试时间
             stringRedisTemplate.opsForValue().set(examingKey, examId.toString(), remainingSeconds, TimeUnit.SECONDS);
-        }else{
-            Long examingId=Long.parseLong(value);
-            if(!examingId.equals(examId)){
-                throw new RuntimeException("用户已经进入考试："+examingId+"，不可参加其它考试。");
+        } else {
+            Long examingId = Long.parseLong(value);
+            if (!examingId.equals(examId)) {
+                throw new IllegalStateException("用户已经进入考试：" + examingId + "，不可参加其它考试。");
             }
         }
         userOnlineExamOptionsService.save(userOnlineExamOptions);
-
-
     }
 
     @Override

@@ -54,57 +54,60 @@ public class AuditLogAspect {
     }
 
     private void saveAuditLog(ProceedingJoinPoint joinPoint, long time) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
+        try {
+            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+            Method method = signature.getMethod();
 
-        AuditLog auditLog = new AuditLog();
-        Audit auditAnnotation = method.getAnnotation(Audit.class);
-        if (auditAnnotation != null) {
-            // 注解上的描述
-            auditLog.setAction(auditAnnotation.value());
-        }
-
-        // 获取request
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            HttpServletRequest request = attributes.getRequest();
-            // 设置IP地址
-            auditLog.setIpAddress(request.getRemoteAddr());
-
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-                Long userId = jwtAuthenticationToken.getToken().getClaim("userId");
-                auditLog.setUserId(userId);
+            AuditLog auditLog = new AuditLog();
+            Audit auditAnnotation = method.getAnnotation(Audit.class);
+            if (auditAnnotation != null) {
+                auditLog.setAction(auditAnnotation.value());
             }
-            if (auditLog.getUserId() == null) {
-                String userIdStr = request.getHeader("X-User-Id");
-                if (userIdStr != null && !userIdStr.isBlank()) {
-                    try {
-                        auditLog.setUserId(Long.parseLong(userIdStr));
-                    } catch (NumberFormatException ignored) {
-                        // 忽略无效的转发用户 ID
+
+            // 获取请求上下文信息
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                auditLog.setIpAddress(request.getRemoteAddr());
+
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
+                    Object claimValue = jwtAuthenticationToken.getToken().getClaim("userId");
+                    if (claimValue instanceof Number number) {
+                        auditLog.setUserId(number.longValue());
+                    } else if (claimValue != null) {
+                        try {
+                            auditLog.setUserId(Long.parseLong(String.valueOf(claimValue)));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+                if (auditLog.getUserId() == null) {
+                    String userIdStr = request.getHeader("X-User-Id");
+                    if (userIdStr != null && !userIdStr.isBlank()) {
+                        try {
+                            auditLog.setUserId(Long.parseLong(userIdStr));
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
                 }
             }
-        }
 
-        // 获取参数并简单转为字符串
-        Object[] args = joinPoint.getArgs();
-        if (args != null && args.length > 0) {
-            StringBuilder params = new StringBuilder();
-            for (Object arg : args) {
-                if (arg != null) {
-                    params.append(arg.toString()).append("; ");
+            // 提取方法参数描述
+            Object[] args = joinPoint.getArgs();
+            if (args != null && args.length > 0) {
+                StringBuilder params = new StringBuilder();
+                for (Object arg : args) {
+                    if (arg != null) {
+                        params.append(arg.toString()).append("; ");
+                    }
                 }
+                auditLog.setRequestParams(params.length() > 255 ? params.substring(0, 255) : params.toString());
             }
-            auditLog.setRequestParams(params.toString().length() > 255 ? params.toString().substring(0, 255) : params.toString());
-        }
 
-        auditLog.setDuration(time);
-        auditLog.setCreateTime(LocalDateTime.now());
+            auditLog.setDuration(time);
+            auditLog.setCreateTime(LocalDateTime.now());
 
-        // 保存到数据库
-        try {
             auditLogMapper.insert(auditLog);
         } catch (Exception e) {
             log.error("保存审计日志失败: {}", e.getMessage());

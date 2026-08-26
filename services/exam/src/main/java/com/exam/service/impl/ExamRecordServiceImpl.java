@@ -74,6 +74,9 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
     @Autowired
     private ExamService examService;
 
+    @Autowired
+    private org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void submitExam(Long userId, Long examId, List<UserAnswer> submittedAnswers) {
@@ -217,6 +220,16 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         record.setStatus(hasPendingSubjective ? 1 : 2);
         record.setUpdateTime(LocalDateTime.now());
         updateById(record);
+
+        // 交卷完成后清理正在考试中的缓存标记
+        try {
+            String examingKey = com.domain.enums.redis.OnlineExamEnum.Is_Examing.buildKey(String.valueOf(userId));
+            String currentExamId = stringRedisTemplate.opsForValue().get(examingKey);
+            if (examId.toString().equals(currentExamId)) {
+                stringRedisTemplate.delete(examingKey);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

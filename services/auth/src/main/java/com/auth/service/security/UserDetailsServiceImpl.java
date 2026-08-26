@@ -3,7 +3,6 @@ package com.auth.service.security;
 import com.auth.dto.CustomSecurityUser;
 import com.auth.feign.UserFeignClient;
 import com.domain.dto.UserDto;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,19 +28,27 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        // 1. 远程调用 User Service
-        // 这里的 userResult 只是一个 DTO (数据传输对象)
+        com.domain.restful.RestResponse<UserDto> response;
+        try {
+            response = userFeignClient.loadUserByUsername(username);
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("查询用户信息失败: " + e.getMessage());
+        }
 
-        UserDto userResult = userFeignClient.loadUserByUsername(username).getData();
-
-        if (userResult == null) {
+        if (response == null || response.getData() == null) {
             throw new UsernameNotFoundException("用户不存在");
         }
-        if (!userResult.isStatus()) {
+
+        UserDto userResult = response.getData();
+        if (!Boolean.TRUE.equals(userResult.getStatus())) {
             throw new UsernameNotFoundException("用户已被禁用");
         }
         List<String> authorities = new ArrayList<>();
-        authorities.add(userResult.getRole().toString());
+        if (userResult.getRole() != null) {
+            authorities.add(userResult.getRole().toString());
+        } else {
+            authorities.add("student");
+        }
         if (userResult.getPermissions() != null) {
             userResult.getPermissions().stream()
                     .filter(permission -> permission != null && !permission.isBlank())

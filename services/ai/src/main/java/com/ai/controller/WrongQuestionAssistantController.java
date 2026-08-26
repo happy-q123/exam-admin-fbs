@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/wrong-question-assistant")
@@ -58,7 +59,7 @@ public class WrongQuestionAssistantController {
         Integer owned = jdbcTemplate.queryForObject(
                 "SELECT COUNT(1) FROM ai_agent_run WHERE run_id = ? AND user_id = ?",
                 Integer.class, request.agentRunId(), userId);
-        if (owned == null || owned == 0) throw new IllegalArgumentException("运行记录不存在");
+        if (owned == null || owned == 0) throw new NoSuchElementException("运行记录不存在");
         jdbcTemplate.update("""
                 INSERT INTO ai_answer_feedback(run_id, user_id, rating, reason)
                 VALUES (?, ?, ?, ?)

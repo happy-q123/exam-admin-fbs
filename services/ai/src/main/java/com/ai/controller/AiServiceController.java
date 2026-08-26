@@ -34,7 +34,7 @@ public class AiServiceController {
 
     @GetMapping("/hybridMemoryChatTest")
     public RestResponse hybridMemoryChatTest(@AuthenticationPrincipal Jwt jwt, @RequestParam("query") String query){
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if (userId == null) {
             return RestResponse.fail("token中无userId");
         }
@@ -47,7 +47,7 @@ public class AiServiceController {
     public RestResponse hybridMemoryChatAutoSaveMessageTest(@AuthenticationPrincipal Jwt jwt,
                                                             @RequestParam("query") String query,
                                                             @RequestParam("conversationId") String conversationId){
-        Long userId = jwt.getClaim("userId");
+        Long userId = currentUserId(jwt);
         if (userId == null) {
             return RestResponse.fail("token中无userId");
         }
@@ -70,4 +70,10 @@ public class AiServiceController {
 //                // 注意：Spring AI 目前的 Document 对象通常不直接包含 score (相似度分数)，
 //                // 除非 VectorStore 实现将其放入了 metadata 中。
 //        )).collect(Collectors.toList());
+
+    private Long currentUserId(Jwt jwt) {
+        if (jwt == null || jwt.getClaim("userId") == null) return null;
+        Object value = jwt.getClaim("userId");
+        return value instanceof Number number ? number.longValue() : Long.valueOf(String.valueOf(value));
+    }
 }

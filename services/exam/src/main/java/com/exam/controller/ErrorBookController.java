@@ -26,7 +26,7 @@ public class ErrorBookController {
 
     @GetMapping({"/list", "/list/{userId}"})
     public RestResponse<List<ErrorBookVo>> listUserErrors(@AuthenticationPrincipal Jwt jwt,
-                                                          @PathVariable(required = false) Long userId) {
+                                                          @PathVariable(value = "userId", required = false) Long userId) {
         Long currentUserId = currentUserId(jwt);
         if (currentUserId == null) {
             return RestResponse.fail("token中无userId");
@@ -61,7 +61,7 @@ public class ErrorBookController {
     }
 
     @DeleteMapping("/remove/{errorId}")
-    public RestResponse<Boolean> removeError(@AuthenticationPrincipal Jwt jwt, @PathVariable Long errorId) {
+    public RestResponse<Boolean> removeError(@AuthenticationPrincipal Jwt jwt, @PathVariable("errorId") Long errorId) {
         Long currentUserId = currentUserId(jwt);
         ErrorBook errorBook = errorBookService.getById(errorId);
         if (currentUserId == null || errorBook == null) {

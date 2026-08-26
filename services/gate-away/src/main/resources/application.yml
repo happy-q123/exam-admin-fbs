@@ -32,6 +32,11 @@ spring:
           uri: lb://question-service
           predicates:
             - Path=/question/**
+        #消息服务 STOMP/WebSocket 握手（必须用 ws scheme 才能转发 WebSocket 升级请求）
+        - id: message-websocket_route
+          uri: lb:ws://message-service
+          predicates:
+            - Path=/message/ws,/message/ws/**,/message/ws-sockjs/**
         #消息服务
         - id: message-service_route
           uri: lb://message-service
@@ -134,7 +139,9 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+            # Spring Security 的表单登录页由网关直接返回，部分浏览器对跨源顶层表单提交会发送 Origin: null。
+            # 保留明确的本地开发源，同时显式允许该登录场景，生产环境应通过 CORS_ALLOWED_ORIGINS 覆盖。
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:7049,null}
             allowedMethods: GET,POST,PUT,DELETE,OPTIONS
             allowedHeaders: Authorization,Content-Type,Accept,token
 #            allowCredentials: true # 是否允许携带 Cookie

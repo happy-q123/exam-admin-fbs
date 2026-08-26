@@ -38,7 +38,7 @@ public class PermissionController {
     @Audit("删除菜单或权限")
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("@roleGuard.isAdmin(authentication)")
-    public boolean deletePermission(@PathVariable Long id) {
+    public boolean deletePermission(@PathVariable("id") Long id) {
         return permissionService.removeById(id);
     }
 }

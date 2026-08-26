@@ -70,7 +70,7 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
         String userId = String.valueOf(userOnlineExamAnswer.getUserId());
 
         if(!isUserOnline(userId)){
-            throw new RuntimeException("用户不在线");
+            throw new IllegalStateException("用户不在线");
         }
 
         try {
@@ -121,7 +121,7 @@ public class UserOnlineExamAnswerServiceImpl extends ServiceImpl<UserOnlineExamA
         UserOnlineExamAnswer userOnlineExamAnswer = userOnlineExamAnswerDto.toEntityForSave();
         String userId = String.valueOf(userOnlineExamAnswer.getUserId());
         if(!isUserOnline(userId)){
-            throw new RuntimeException("用户不在线");
+            throw new IllegalStateException("用户不在线");
         }
         updateAnswer(userOnlineExamAnswer);
     }

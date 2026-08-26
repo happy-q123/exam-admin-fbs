@@ -46,8 +46,8 @@ public class SecurityConfig {
             throws Exception {
         http
             .authorizeHttpRequests((authorize) -> authorize
-                // 放行静态资源和一些通用接口
-                .requestMatchers("/common/**", "/error", "/favicon.ico").permitAll()
+                // 放行静态资源和通用验证码接口
+                .requestMatchers("/common/**", "/getValidateCode", "/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )
             // Form login handles the redirect to the login page from the

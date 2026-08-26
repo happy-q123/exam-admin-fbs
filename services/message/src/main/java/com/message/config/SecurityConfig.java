@@ -29,9 +29,8 @@ public class SecurityConfig {
 
                 // 2. 配置权限规则
                 .authorizeHttpRequests(auth -> auth
-                        //开放ws握手地址
-                        //ws的握手前期需要http，且浏览器的这个http握手不能携带header，所以不能让security处理token，只能配置ws拦截器
-                        .requestMatchers("/ws","/ws-sockjs").permitAll()
+                        // 开放 WebSocket 和 SockJS 握手端点
+                        .requestMatchers("/ws", "/ws/**", "/ws-sockjs", "/ws-sockjs/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(
                                 "/doc.html",

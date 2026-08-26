@@ -48,7 +48,14 @@ public class ToolsConfig {
             // 2. 判空并检查 Principal 是否为 Jwt 类型
             if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
                 // 3. 从 Claims 中提取 userId (根据你 Token 里的 key，这里假设是 "userId")
-                return jwt.getClaim("userId");
+                Object value = jwt.getClaim("userId");
+                if (value instanceof Number number) {
+                    return number.longValue();
+                }
+                if (value != null) {
+                    return Long.valueOf(String.valueOf(value));
+                }
+                return null;
             }
 
             // 如果没获取到，可以抛出异常或返回 null

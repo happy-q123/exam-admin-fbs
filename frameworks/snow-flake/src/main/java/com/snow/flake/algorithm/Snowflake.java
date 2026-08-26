@@ -25,9 +25,9 @@ public class Snowflake implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 算法起始时间点：2025-12-18 21:28:00 (一旦确定不可修改，否则旧ID与新ID会重复)
+     * 算法起始时间点：2024-01-01 00:00:00
      */
-    private static long DEFAULT_TWEPOCH = 1766064480483L;
+    private static long DEFAULT_TWEPOCH = 1704067200000L;
 
     /**
      * 默认允许的时间回拨阈值（2000毫秒）。
