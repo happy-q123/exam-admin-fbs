@@ -7,6 +7,7 @@ import com.domain.restful.RestResponse;
 import com.domain.vo.UserErrorQuestionsVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.function.Function;
  * date 2026/1/28 20:23
 */
 @Component
+@Slf4j
 public class UserErrorQuestionFunction implements Function<UserErrorQuestionRequest, String> {
     private final UserErrorQuestionFeignClient userErrorQuestionFeignClient;
     private final ObjectMapper objectMapper;
@@ -42,7 +44,7 @@ public class UserErrorQuestionFunction implements Function<UserErrorQuestionRequ
             return objectMapper.writeValueAsString(questionDtoList);
         } catch (JsonProcessingException e) {
             // 记录日志并返回错误提示给 AI，防止程序崩溃
-            e.printStackTrace();
+            log.error("错题列表序列化失败, userId={}", userIdRecord == null ? null : userIdRecord.userId(), e);
             return "获取错题列表时发生数据转换错误";
         }
     }

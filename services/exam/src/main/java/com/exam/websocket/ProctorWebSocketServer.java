@@ -84,10 +84,10 @@ public class ProctorWebSocketServer {
         }
         if ("teacher".equalsIgnoreCase(role)) {
             teacherSessions.computeIfAbsent(examId, k -> new CopyOnWriteArraySet<>()).add(session);
-            System.out.println("监考老师上线: " + userId + ", 考场: " + examId);
+            log.info("监考老师上线: userId={}, examId={}", userId, examId);
         } else if ("student".equalsIgnoreCase(role)) {
             recordEvent(examId, userId, "ONLINE", Map.of("channel", "proctor-websocket"));
-            System.out.println("学生上线准备推送画面: " + userId + ", 考场: " + examId);
+            log.info("学生上线准备推送画面: userId={}, examId={}", userId, examId);
         }
     }
 
@@ -133,7 +133,7 @@ public class ProctorWebSocketServer {
 
     @OnError
     public void onError(Session session, Throwable error) {
-        error.printStackTrace();
+        log.error("监考 WebSocket 发生异常", error);
     }
 
     private boolean hasRole(String role, Object roles, Object authorities, String expected) {

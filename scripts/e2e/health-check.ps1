@@ -86,8 +86,9 @@ if ($authHeaders.Count -gt 0) {
     Test-Http "Exam actuator authentication" "$($ExamUrl.TrimEnd('/'))/exam/actuator/health" @(401)
 }
 
-Test-Http "Gateway AI health route" "$($GatewayUrl.TrimEnd('/'))/ai/actuator/health" @(200) $authHeaders | Out-Null
-Test-Http "Gateway Exam health route" "$($GatewayUrl.TrimEnd('/'))/exam/actuator/health" @(200) $authHeaders | Out-Null
+$expectedGatewayStatus = if ($authHeaders.Count -gt 0) { @(200) } else { @(401) }
+Test-Http "Gateway AI health route" "$($GatewayUrl.TrimEnd('/'))/ai/actuator/health" $expectedGatewayStatus $authHeaders | Out-Null
+Test-Http "Gateway Exam health route" "$($GatewayUrl.TrimEnd('/'))/exam/actuator/health" $expectedGatewayStatus $authHeaders | Out-Null
 Test-Http "Nacos HTTP" "$($NacosUrl.TrimEnd('/'))/nacos/" @(200, 302, 401, 403) | Out-Null
 Test-Http "Ollama tags" "$($OllamaUrl.TrimEnd('/'))/api/tags" @(200) | Out-Null
 

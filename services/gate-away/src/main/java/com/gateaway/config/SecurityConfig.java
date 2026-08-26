@@ -54,11 +54,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebFluxSecurity
+@Slf4j
 public class SecurityConfig {
 
     @Bean
@@ -104,8 +106,7 @@ public class SecurityConfig {
             ServerHttpResponse response = exchange.getResponse();
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            // 打印一下日志，方便看控制台
-            System.out.println("触发 401 异常: " + ex.getMessage());
+            log.warn("触发 401 异常: {}", ex.getMessage());
             String body = "{\"code\":401,\"message\":\"未授权或Token无效\"}";
             DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
             return response.writeWith(Mono.just(buffer));
